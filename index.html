@@ -1,0 +1,34 @@
+<html>
+<head>
+    <style>
+       #status {
+           height: 100%;
+           width: 100%;
+           color: gray;
+           text-align: center;
+           font-size: 18pt;
+       }
+    </style>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io.connect('http://codepurple.goshen.edu:8888/game');
+
+        socket.on('status', function (data) {
+            $('#status').html("<p>" + data + "</p>");
+        });
+
+        function send_message() {
+            socket.emit('send', $('#msg').val());
+            $('#msg').val('');
+        }
+    </script>
+</head>
+
+<body>
+
+<div id='status'></div>
+
+</body>
+</html>
