@@ -24,6 +24,7 @@ function handler (req, res) {
 // each person connected is represented by a Player object
 function Player(socket) {
     this.socket = socket;
+    this.opponent = null;
 
     this.set_status = function (msg) {
         this.socket.emit('status', msg);
@@ -64,15 +65,12 @@ function new_player(socket) {
 
     var noob = new Player(socket);
 
-    console.log('created player');
     noob.set_status('Connecting...');
 
     players.push(noob);
 
     noob.set_status('Pairing you with another player...');
     pair_player(noob, players);
-
-    console.log(players.length);
 }
 
 function delete_player(socket) {
@@ -80,16 +78,19 @@ function delete_player(socket) {
     // remove it
     for (i in players) {
         if (players[i].socket == socket) {
-            if (players[i].has_opponent()) {
-                var other_guy = players[i].opponent;
+            noob = players[i];
+
+            players.splice(i, 1);
+
+            if (noob.has_opponent()) {
+                var other_guy = noob.opponent;
                 other_guy.set_status('Your opponent has disconnected.');
                 other_guy.opponent = null;
                 
                 pair_player(other_guy);
             }
 
-            players = players.splice(i, 1);
-            console.log(players.length);
+            delete noob;
 
             return;
         }
@@ -100,6 +101,7 @@ function delete_player(socket) {
 var game = io
     .of('/game')
     .on('connection', function (socket) {
+        console.log('connected');
         new_player(socket);
 
         socket.on('disconnect', function() {
