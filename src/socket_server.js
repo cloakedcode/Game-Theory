@@ -1,25 +1,10 @@
-var app = require('http').createServer(handler)
-, io = require('socket.io').listen(app)
-, fs = require('fs')
+// @TODO: make socket.io listen to express server
+var io = require('socket.io').listen(app)
 
-app.listen(8888);
 
 
 // the array of players that are connected
 var players = new Array();
-
-function handler (req, res) {
-    fs.readFile(__dirname + '/index.html',
-            function (err, data) {
-                if (err) {
-                    res.writeHead(500);
-                    return res.end('Error loading index.html');
-                }
-
-                res.writeHead(200);
-                res.end(data);
-            });
-}
 
 // each person connected is represented by a Player object
 function Player(socket) {
