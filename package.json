@@ -5,6 +5,7 @@
     "private": true,
     "dependencies": {
         "express": "3.2.6",
+        "whiskers": "0.3.1",
         "socket.io": "0.9.14"
     }
 }
