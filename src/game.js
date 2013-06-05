@@ -7,6 +7,8 @@ function Game (name) {
         throw "Game objects must be created with an existing game name.";
     }
 
+    callback = arguments[1] || function () {};
+
     if ("name" in name) {
         fs.readdir('games/', function (err, files) {
             var games = new Array;
@@ -20,6 +22,8 @@ function Game (name) {
                     self.play = f.play;
                 }
             }
+
+            callback(self);
         });
     } else {
         included = require('games/' + name + '.js');
@@ -28,10 +32,12 @@ function Game (name) {
         self.name = included.name;
 
         self.play = included.play;
+        
+        callback(self);
     }
 }
 
-module.exports = exports = function (name) { return new Game(name) };
+module.exports = exports = function (name) { return new Game(name, arguments[1]) };
 
 exports.Game = Game;
 
