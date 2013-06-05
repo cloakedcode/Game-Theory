@@ -1,0 +1,12 @@
+<form method="post">
+    <label>Games:</label>
+    <select name='game'>
+        {{#games}}
+        <option value='{{name}}'>{{name}}</option>
+        {{/games}}
+    </select>
+    {{^games}}
+    <p>Sorry, there are no games.</p>
+    {{/games}}
+    <input type='submit' value='Run' />
+</form>

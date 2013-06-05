@@ -1,0 +1,11 @@
+#!/bin/sh
+
+export NODE_PATH=`pwd`
+
+while [[ true ]]
+do
+    node server.js &
+    SERVER_PID=$!
+    inotifywait --excludei .swp -e modify server.js src/ public/ views/
+    kill -15 $SERVER_PID
+done
