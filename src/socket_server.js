@@ -1,59 +1,86 @@
-var Game = require('src/game.js').Game;
-// @TODO: make socket.io listen to express server
+var Game = require('src/game.js')
+    , Lobby = require('src/lobby.js')
+    , Player = require('src/player.js')
+
 exports.listen = function (app) {
-    var io = require('socket.io').listen(app)
-
-    // main socket handling functions
-    io.of('/game')
-      .on('connection', function (socket) {
-          console.log('connected');
-          new_player(socket);
-
-          socket.on('disconnect', function() {
-              console.log('disconnected');
-              delete_player(socket);
-          });
-          /*
-          //socket.set('nickname', names[Math.floor(Math.random() * names.length)]);
-          socket.on('send', function (data) {
-              socket.get('nickname', function (err, name) {
-                  msg = {'nickname' : name, 'data': data};
-                  log.push(msg);
-                  console.log(msg);
-                  chat.emit('message', msg);
-              });
-          });
-          */
-      });
-
-    return new GameServer();
+    return new GameServer().listen(app);
 }
 
 function GameServer() {
-    this.lobbies = new Array();
+    // the array of players that are connected
+    var self = this;
+    self.lobbies = new Array();
+    self.players = new Array();
 
-    this.create_lobby = function (game_name) {
+    self.listen = function (app) {
+        self.io = require('socket.io').listen(app)
+
+        // main socket handling functions
+        self.io.of('/game').on('connection', self.player_joined);
+        return self;
+    }
+
+    self.create_lobby = function (game_name) {
         console.log('created lobby with game: ' + game_name);
-        this.lobbies.push(new Game({name: game_name}));
+        lobby = Lobby(Game({name: game_name}));
+
+        self.lobbies.push(lobby);
+        setTimeout(function () { self.put_players_in_lobby(lobby) }, 100);
+    }
+
+    self.player_joined = function (socket) {
+        console.log('player joined');
+
+        socket.on('disconnect', self.player_disconnected);
+
+        var noob = Player(socket);
+
+        noob.set_status('Connecting...');
+        self.players.push(noob);
+
+        if (self.lobbies != null && self.lobbies.length > 0) {
+            self.lobbies[0].add_player(noob);
+        } else {
+            noob.set_status('There are no games for you to join.<br>Wait for one to be created.');
+        }
+    };
+
+    self.player_disconnected = function (socket) {
+        // if this socket is in the player array,
+        // remove it
+        for (i in self.players) {
+            if (self.players[i].socket == socket) {
+                noob = self.players[i];
+
+                self.players.splice(i, 1);
+
+                if (noob.has_opponent()) {
+                    var other_guy = noob.opponent;
+                    other_guy.set_status('Your opponent has disconnected.');
+                    other_guy.opponent = null;
+
+                    pair_player(other_guy);
+                }
+
+                delete noob;
+
+                return;
+            }
+        }
+    }
+
+    self.put_players_in_lobby = function (lobby) {
+        for (i in self.players) {
+            if (self.players[i].lobby == null) {
+                lobby.add_player(self.players[i]);
+            }
+        }
     }
 };
 
 // the array of players that are connected
 var players = new Array();
 
-// each person connected is represented by a Player object
-function Player(socket) {
-    this.socket = socket;
-    this.opponent = null;
-
-    this.set_status = function (msg) {
-        this.socket.emit('status', msg);
-    };
-
-    this.has_opponent = function () {
-        return (this.opponent != null);
-    };
-};
 
 // pairs players up to each other for playing the game
 function pair_player(noob) {
@@ -73,47 +100,3 @@ function pair_player(noob) {
 
     return noob.has_opponent();
 };
-
-function new_player(socket) {
-    // if this socket is already in the player array,
-    // don't create another player for it.
-    for (i in players) {
-        if (players[i].socket == socket) {
-            return;
-        }
-    }
-
-    var noob = new Player(socket);
-
-    noob.set_status('Connecting...');
-
-    players.push(noob);
-
-    noob.set_status('Pairing you with another player...');
-    pair_player(noob, players);
-}
-
-function delete_player(socket) {
-    // if this socket is in the player array,
-    // remove it
-    for (i in players) {
-        if (players[i].socket == socket) {
-            noob = players[i];
-
-            players.splice(i, 1);
-
-            if (noob.has_opponent()) {
-                var other_guy = noob.opponent;
-                other_guy.set_status('Your opponent has disconnected.');
-                other_guy.opponent = null;
-                
-                pair_player(other_guy);
-            }
-
-            delete noob;
-
-            return;
-        }
-    }
-}
-

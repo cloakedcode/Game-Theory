@@ -1,6 +1,8 @@
 var fs = require('fs')
 
-exports.Game = function (name) {
+function Game (name) {
+    var self = this;
+
     if (name === undefined) {
         throw "Game objects must be created with an existing game name.";
     }
@@ -12,22 +14,26 @@ exports.Game = function (name) {
             for (i in files) {
                 f = require('games/' + files[i]);
                 if (name.name == f.name) {
-                    this.num_per_round = f.num_per_round;
-                    this.name = f.name;
+                    self.num_per_round = f.num_per_round;
+                    self.name = f.name;
 
-                    this.play = f.play;
+                    self.play = f.play;
                 }
             }
         });
     } else {
         included = require('games/' + name + '.js');
 
-        this.num_per_round = included.num_per_round;
-        this.name = included.name;
+        self.num_per_round = included.num_per_round;
+        self.name = included.name;
 
-        this.play = included.play;
+        self.play = included.play;
     }
 }
+
+module.exports = exports = function (name) { return new Game(name) };
+
+exports.Game = Game;
 
 // the callback takes one argument, an array of games found
 exports.available_games = function (callback) {
