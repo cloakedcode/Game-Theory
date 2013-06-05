@@ -22,10 +22,13 @@ function GameServer() {
 
     self.create_lobby = function (game_name) {
         console.log('created lobby with game: ' + game_name);
-        lobby = Lobby(Game({name: game_name}));
 
-        self.lobbies.push(lobby);
-        setTimeout(function () { self.put_players_in_lobby(lobby) }, 100);
+        Game({name: game_name}, function (game) {
+            lobby = Lobby(game);
+
+            self.lobbies.push(lobby);
+            self.put_players_in_lobby(lobby);
+        });
     }
 
     self.player_joined = function (socket) {
