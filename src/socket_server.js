@@ -1,7 +1,42 @@
+var Game = require('src/game.js').Game;
 // @TODO: make socket.io listen to express server
-var io = require('socket.io').listen(app)
+exports.listen = function (app) {
+    var io = require('socket.io').listen(app)
 
+    // main socket handling functions
+    io.of('/game')
+      .on('connection', function (socket) {
+          console.log('connected');
+          new_player(socket);
 
+          socket.on('disconnect', function() {
+              console.log('disconnected');
+              delete_player(socket);
+          });
+          /*
+          //socket.set('nickname', names[Math.floor(Math.random() * names.length)]);
+          socket.on('send', function (data) {
+              socket.get('nickname', function (err, name) {
+                  msg = {'nickname' : name, 'data': data};
+                  log.push(msg);
+                  console.log(msg);
+                  chat.emit('message', msg);
+              });
+          });
+          */
+      });
+
+    return new GameServer();
+}
+
+function GameServer() {
+    this.lobbies = new Array();
+
+    this.create_lobby = function (game_name) {
+        console.log('created lobby with game: ' + game_name);
+        this.lobbies.push(new Game({name: game_name}));
+    }
+};
 
 // the array of players that are connected
 var players = new Array();
@@ -82,26 +117,3 @@ function delete_player(socket) {
     }
 }
 
-// main socket handling functions
-var game = io
-    .of('/game')
-    .on('connection', function (socket) {
-        console.log('connected');
-        new_player(socket);
-
-        socket.on('disconnect', function() {
-            console.log('disconnected');
-            delete_player(socket);
-        });
-        /*
-        //socket.set('nickname', names[Math.floor(Math.random() * names.length)]);
-        socket.on('send', function (data) {
-            socket.get('nickname', function (err, name) {
-                msg = {'nickname' : name, 'data': data};
-                log.push(msg);
-                console.log(msg);
-                chat.emit('message', msg);
-            });
-        });
-        */
-    });
