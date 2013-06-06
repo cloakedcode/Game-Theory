@@ -1,6 +1,22 @@
-<form method="post">
+<h1>Lobbies</h1>
+<ul>
+{{#lobbies}}
+<li>{{game.name}} <form method='post' style='display: inline'>
+    <input type='hidden' name='game_id' value='{{game.name}}'>
+    {{#button}}{{is_running}}{{/button}}
+</form></li>
+{{/lobbies}}
+{{^lobbies}}
+<li>There are no lobbies yet. Create one below.</li>
+{{/lobbies}}
+</ul>
+
+<hr>
+
+<form method="post" onsubmit="return check_game()">
     <label>Games:</label>
-    <select name='game'>
+    <select name='game' id='game'>
+        <option value='none'>Select a Game</option>
         {{#games}}
         <option value='{{name}}'>{{name}}</option>
         {{/games}}
@@ -8,5 +24,16 @@
     {{^games}}
     <p>Sorry, there are no games.</p>
     {{/games}}
-    <input type='submit' value='Run' />
+    <input type='submit' value='Create Lobby' />
 </form>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<script>
+    function check_game() {
+        if ($('#game').val() == 'none') {
+            alert("Please choose a game from the drop-down.");
+            return false;
+        }
+        return true;
+    }
+</script>

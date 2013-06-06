@@ -3,6 +3,7 @@ Game = require('../src/game.js').Game;
 function Lobby(game) {
     var self = this;
 
+    self.is_running = false;
     self.players = new Array();
 
     if (game instanceof Game == false) {
@@ -12,7 +13,21 @@ function Lobby(game) {
     self.game = game;
 
     self.run_game = function () {
+        self.is_running = true;
+
+        // for each pair of players
+        pair = null;
+        self.game.play(pair, self.game_ended);
+
         return false;
+    }
+
+    self.end_game = function () {
+        self.game.end(self.game_ended);
+    }
+
+    self.game_ended = function (players) {
+        self.is_running = false;
     }
 
     self.add_player = function (player) {

@@ -31,6 +31,22 @@ function GameServer() {
         });
     }
 
+    self.start_lobby = function (game_name) {
+        for (i in self.lobbies) {
+            if (self.lobbies[i].game.name == game_name && self.lobbies[i].is_running == false) {
+                return self.lobbies[i].run_game();
+            }
+        }
+    }
+
+    self.stop_lobby = function (game_name) {
+        for (i in self.lobbies) {
+            if (self.lobbies[i].game.name == game_name && self.lobbies[i].is_running) {
+                return self.lobbies[i].end_game();
+            }
+        }
+    }
+
     self.player_joined = function (socket) {
         console.log('player joined');
 
