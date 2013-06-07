@@ -3,6 +3,8 @@ var fs = require('fs')
 function Game (name) {
     var self = this;
 
+    self.players = null;
+
     if (name === undefined) {
         throw "Game objects must be created with an existing game name.";
     }
@@ -19,7 +21,7 @@ function Game (name) {
                     self.num_per_round = f.num_per_round;
                     self.name = f.name;
 
-                    self.play = f.play;
+                    self._play = f.play;
                 }
             }
 
@@ -34,6 +36,27 @@ function Game (name) {
         self.play = included.play;
         
         callback(self);
+    }
+
+    self.play = function (pair, callback) {
+        self.players = pair;
+        self.callback = callback;
+
+        for (var i=0; i<self.players; i++) {
+            self.players[i].is_playing = true;
+        }
+
+        return self._play(self.players, self.game_ended);
+    }
+
+    self.game_ended = function () {
+        for (var i=0; i<self.players; i++) {
+            self.players[i].is_playing = false;
+        }
+        
+        if (self.callback != undefined) {
+            self.callback(self, self.players);
+        }
     }
 }
 

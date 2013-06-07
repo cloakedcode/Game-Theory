@@ -5,6 +5,8 @@ function Lobby(game) {
 
     self.is_running = false;
     self.players = new Array();
+    self.pairs = null;
+    self.games = null;
 
     if (game instanceof Game == false) {
         throw "'game' must be of the type Game";
@@ -15,28 +17,94 @@ function Lobby(game) {
     self.run_game = function () {
         self.is_running = true;
 
-        // for each pair of players
-        pair = null;
-        self.game.play(pair, self.game_ended);
+        self.pair_players();
+        console.log(self.pairs.length);
 
-        return false;
+        self._run_loop();
+    }
+
+    self._run_loop = function () {
+        self.games = new Array();
+
+        // for each pair of players
+        for (var i = 0; i < self.pairs.length; i++) {
+            skip = false;
+            pair = self.pairs[i];
+            for (var j = 0; j <= self.pair; j++) {
+                if (pair[j].socket == null || pair[j].is_playing) {
+                    skip = true;
+                    break;
+                }
+            }
+
+            if (skip == false) {
+                Game({name: self.game.name}, function (game) {
+                    self.games.push(game);
+                    game.play(pair, self.game_ended);
+                });
+            }
+        }
+
+        if (self.pairs.length > 0) {
+            setTimeout(self._run_loop, 5000);
+        }
+    }
+
+    self.game_ended = function (game, players) {
+        // remove game from list of games now that it has ended
+        i = self.games.indexOf(game);
+        if (i >= 0) {
+            self.games.splice(i, 1);
+        }
+
+        // remove player pairing
+        i = self.pairs.indexOf(players);
+        if (i >= 0) {
+            self.pairs.splice(i, 1);
+        }
+        
+        if (self.games.length <= 0) {
+            self.is_running = false;
+        }
+
+        console.log(self.games.length);
+        console.log(self.pairs.length);
+        console.log('a game ended');
     }
 
     self.end_game = function () {
-        self.game.end(self.game_ended);
-    }
-
-    self.game_ended = function (players) {
-        self.is_running = false;
+        for (var i=0; i<self.games; i++) {
+            self.games[i].end(self.game_ended);
+        }
     }
 
     self.add_player = function (player) {
-        console.log(self.game);
         if (self.players.indexOf(player) < 0) {
             self.players.push(player);
-            player.set_status("You joined <em>"+self.game.name+"</em>.");
+            player.set_lobby(self);
         }
     }
+
+    self.remove_player = function (player) {
+        i = self.players.indexOf(player);
+        if (i >= 0) {
+            self.players.splice(i, 1);
+        }
+    }
+
+    // pairs players up to each other for playing the game
+    self.pair_players = function () {
+        self.pairs = new Array();
+
+        for (var i = 0; i <= self.players.length; i++) {
+            for (var j = i+1; j < self.players.length; j += self.game.num_per_round - 1) {
+                new_pair = self.players.slice(j, j + self.game.num_per_round - 1);
+                new_pair.push(self.players[i]);
+
+                self.pairs.push(new_pair);
+            }
+        }
+    };
 }
 
 module.exports = exports = function (game) { return new Lobby(game) };

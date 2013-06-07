@@ -1,6 +1,9 @@
 var Game = require('src/game.js')
     , Lobby = require('src/lobby.js')
     , Player = require('src/player.js')
+    , crypto = require('crypto')
+
+var salt = 'long_salty string that NOONE will ever guess';
 
 exports.listen = function (app) {
     return new GameServer().listen(app);
@@ -15,6 +18,7 @@ function GameServer() {
     self.listen = function (app) {
         self.io = require('socket.io').listen(app)
 
+        self.io.set('log level', 2);
         // main socket handling functions
         self.io.of('/game').on('connection', self.player_joined);
         return self;
@@ -32,7 +36,7 @@ function GameServer() {
     }
 
     self.start_lobby = function (game_name) {
-        for (i in self.lobbies) {
+        for (var i=0; i<self.lobbies.length; i++) {
             if (self.lobbies[i].game.name == game_name && self.lobbies[i].is_running == false) {
                 return self.lobbies[i].run_game();
             }
@@ -40,7 +44,7 @@ function GameServer() {
     }
 
     self.stop_lobby = function (game_name) {
-        for (i in self.lobbies) {
+        for (var i=0; i<self.lobbies.length; i++) {
             if (self.lobbies[i].game.name == game_name && self.lobbies[i].is_running) {
                 return self.lobbies[i].end_game();
             }
@@ -51,37 +55,57 @@ function GameServer() {
         console.log('player joined');
 
         socket.on('disconnect', self.player_disconnected);
+        socket.on('authenticate', self.authenticate_user);
+    }
 
-        var noob = Player(socket);
+    self.authenticate_user = function (data) {
+        hash = data.cookie || crypto.createHash('md5').update(data.username + data.password + salt).digest("hex");
+        // @TODO: replace with LDAP authentication
+        this.emit('authenticate', {allowed: true, cookie: hash});
+        this.emit('status', 'Authenticated');
 
-        noob.set_status('Connecting...');
-        self.players.push(noob);
+        found = false;
+        for (var i=0; i<self.players.length; i++) {
+            noob = self.players[i];
+            if (noob.hash == hash) {
+                console.log(hash + " rejoined");
+                noob.socket = this;
+                found = true;
+                break
+            }
+        }
+
+        if (found == false) {
+            noob = Player(this);
+            noob.hash = hash;
+            console.log(hash + " joined for the first time");
+
+            self.players.push(noob);
+        }
+
+        noob.username = data.username;
+        console.log(self.players.length);
 
         if (self.lobbies != null && self.lobbies.length > 0) {
             self.lobbies[0].add_player(noob);
         } else {
             noob.set_status('There are no games for you to join.<br>Wait for one to be created.');
         }
-    };
+    }
 
     self.player_disconnected = function (socket) {
-        // if this socket is in the player array,
-        // remove it
+        // if this socket is in the player array, remove it
         for (i in self.players) {
             if (self.players[i].socket == socket) {
                 noob = self.players[i];
 
+                /*
                 self.players.splice(i, 1);
-
-                if (noob.has_opponent()) {
-                    var other_guy = noob.opponent;
-                    other_guy.set_status('Your opponent has disconnected.');
-                    other_guy.opponent = null;
-
-                    pair_player(other_guy);
-                }
+                noob.lobby.remove_player(noob);
 
                 delete noob;
+                */
+                noob.socket = null;
 
                 return;
             }
@@ -95,27 +119,4 @@ function GameServer() {
             }
         }
     }
-};
-
-// the array of players that are connected
-var players = new Array();
-
-
-// pairs players up to each other for playing the game
-function pair_player(noob) {
-    for (i in players) {
-        if (players[i] == noob) {
-            continue;
-        }
-
-        if (players[i].has_opponent() == false) {
-            players[i].opponent = noob;
-            noob.opponent = players[i];
-
-            noob.set_status("You've been paired with an opponent.");
-            players[i].set_status("You've been paired with an opponent.");
-        }
-    }
-
-    return noob.has_opponent();
 };
