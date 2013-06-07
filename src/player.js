@@ -13,6 +13,10 @@ function Player(socket) {
         self.socket.emit('status', msg);
     };
 
+    self.round_ended = function () {
+        self.socket.emit('round_ended');
+    }
+
     self.ask_for_choice = function (options, callback) {
         self.callback = callback;
         self.socket.on('choice', self._callback);

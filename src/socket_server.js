@@ -2,8 +2,13 @@ var Game = require('src/game.js')
     , Lobby = require('src/lobby.js')
     , Player = require('src/player.js')
     , crypto = require('crypto')
+    , ldap = require('ldapjs')
 
 var salt = 'long_salty string that NOONE will ever guess';
+var ldapclient = ldap.createClient({
+    url: 'ldaps://gc.goshen.edu:636',
+    bindDN: 'dc="gc",dc="goshen",dc="edu"',
+});
 
 exports.listen = function (app) {
     return new GameServer().listen(app);
@@ -56,41 +61,70 @@ function GameServer() {
 
         socket.on('disconnect', self.player_disconnected);
         socket.on('authenticate', self.authenticate_user);
+        socket.on('check_cookie', self.check_cookie);
     }
 
-    self.authenticate_user = function (data) {
-        hash = data.cookie || crypto.createHash('md5').update(data.username + data.password + salt).digest("hex");
-        // @TODO: replace with LDAP authentication
-        this.emit('authenticate', {allowed: true, cookie: hash});
-        this.emit('status', 'Authenticated');
-
+    self.authenticate_user = function (data, callback) {
+        socket = this;
         found = false;
-        for (var i=0; i<self.players.length; i++) {
-            noob = self.players[i];
-            if (noob.hash == hash) {
-                console.log(hash + " rejoined");
-                noob.socket = this;
-                found = true;
-                break
-            }
-        }
+        hash = crypto.createHash('md5').update(data.username + data.password + salt).digest("hex");
 
-        if (found == false) {
-            noob = Player(this);
+        // @TODO: replace with LDAP authentication
+        valid = ldapclient.bind('cn='+data.username, data.password, function (err) {
+            if (err) {
+                return callback(false);
+            }
+        })
+        console.log("valid: "+valid);
+        if (valid) {
+            socket.emit('status', 'Authenticated');
+
+            noob = Player(socket);
             noob.hash = hash;
             console.log(hash + " joined for the first time");
 
             self.players.push(noob);
+
+            noob.username = data.username;
+            console.log(self.players.length);
+
+            if (self.lobbies != null && self.lobbies.length > 0) {
+                self.lobbies[0].add_player(noob);
+            } else {
+                noob.set_status('There are no games for you to join.<br>Wait for one to be created.');
+            }
+
+            return callback(true, hash);
         }
 
-        noob.username = data.username;
+        callback (false);
+    }
+
+    self.check_cookie = function (hash, callback) {
+        socket = this;
+        found = false;
+        for (var i=0; i<self.players.length; i++) {
+            noob = self.players[i];
+            if (noob.hash == hash) {
+                console.log(noob.hash + " rejoined");
+                noob.socket = socket;
+                found = true;
+                break
+            }
+        }
         console.log(self.players.length);
 
-        if (self.lobbies != null && self.lobbies.length > 0) {
-            self.lobbies[0].add_player(noob);
-        } else {
-            noob.set_status('There are no games for you to join.<br>Wait for one to be created.');
+        if (found) {
+            if (self.lobbies != null && self.lobbies.length > 0) {
+                self.lobbies[0].add_player(noob);
+                noob.set_status('You rejoined the game lobby.');
+            } else {
+                noob.set_status('There are no games for you to join.<br>Wait for one to be created.');
+            }
+
         }
+
+        callback(found);
     }
 
     self.player_disconnected = function (socket) {
@@ -99,12 +133,11 @@ function GameServer() {
             if (self.players[i].socket == socket) {
                 noob = self.players[i];
 
-                /*
                 self.players.splice(i, 1);
                 noob.lobby.remove_player(noob);
 
                 delete noob;
-                */
+
                 noob.socket = null;
 
                 return;
