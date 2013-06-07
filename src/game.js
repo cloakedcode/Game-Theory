@@ -13,15 +13,16 @@ function Game (name) {
 
     if ("name" in name) {
         fs.readdir('games/', function (err, files) {
-            var games = new Array;
 
             for (i in files) {
-                f = require('games/' + files[i]);
-                if (name.name == f.name) {
-                    self.num_per_round = f.num_per_round;
-                    self.name = f.name;
+                if (files[i][0] != '.') {
+                    f = require('games/' + files[i]);
+                    if (name.name == f.name) {
+                        self.num_per_round = f.num_per_round;
+                        self.name = f.name;
 
-                    self._play = f.play;
+                        self._play = f.play;
+                    }
                 }
             }
 
@@ -33,7 +34,7 @@ function Game (name) {
         self.num_per_round = included.num_per_round;
         self.name = included.name;
 
-        self.play = included.play;
+        self._play = included.play;
         
         callback(self);
     }
@@ -42,7 +43,7 @@ function Game (name) {
         self.players = pair;
         self.callback = callback;
 
-        for (var i=0; i<self.players; i++) {
+        for (var i=0; i<self.players.length; i++) {
             self.players[i].is_playing = true;
         }
 
@@ -50,7 +51,7 @@ function Game (name) {
     }
 
     self.game_ended = function () {
-        for (var i=0; i<self.players; i++) {
+        for (var i=0; i<self.players.length; i++) {
             self.players[i].is_playing = false;
         }
         
@@ -71,9 +72,11 @@ exports.available_games = function (callback) {
         var games = new Array;
 
         for (i in files) {
-            // name is the file name minus the ".js" extension
-            name = require('games/' + files[i]).name;
-            games.push({name: name});
+            if (files[i][0] != '.') {
+                // name is the file name minus the ".js" extension
+                name = require('games/' + files[i]).name;
+                games.push({name: name});
+            }
         }
 
         callback(games);
@@ -84,11 +87,13 @@ exports.exists = function (name, callback) {
     // return an array of the file names in the games directory
     fs.readdir('games/', function (err, files) {
         for (i in files) {
-            // name is the file name minus the ".js" extension
-            game_name = require('games/' + files[i]).name;
+            if (files[i][0] != '.') {
+                // name is the file name minus the ".js" extension
+                game_name = require('games/' + files[i]).name;
 
-            if (name == game_name) {
-                return callback(true);
+                if (name == game_name) {
+                    return callback(true);
+                }
             }
         }
 

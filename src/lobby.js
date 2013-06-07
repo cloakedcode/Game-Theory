@@ -7,6 +7,7 @@ function Lobby(game) {
     self.players = new Array();
     self.pairs = null;
     self.games = null;
+    self.timeout_id = null;
 
     if (game instanceof Game == false) {
         throw "'game' must be of the type Game";
@@ -18,35 +19,48 @@ function Lobby(game) {
         self.is_running = true;
 
         self.pair_players();
-        console.log(self.pairs.length);
 
-        self._run_loop();
+        self.games = new Array();
+
+        self.timeout_id = setInterval(self._run_loop, 750);
     }
 
     self._run_loop = function () {
-        self.games = new Array();
-
         // for each pair of players
         for (var i = 0; i < self.pairs.length; i++) {
             skip = false;
             pair = self.pairs[i];
-            for (var j = 0; j <= self.pair; j++) {
+            for (var j = 0; j < pair.length; j++) {
+                console.log('is playing: '+pair[j].is_playing);
                 if (pair[j].socket == null || pair[j].is_playing) {
                     skip = true;
                     break;
                 }
             }
 
+            console.log("skip: "+skip);
             if (skip == false) {
                 Game({name: self.game.name}, function (game) {
                     self.games.push(game);
                     game.play(pair, self.game_ended);
+
+                    for (var j = 0; j < pair.length; j++) {
+                        console.log('is playing now: '+pair[j].is_playing);
+                    }
                 });
+
+                /*
+                for (var i=0; i<pair.length; i++) {
+                    pair[i].is_playing = true;
+                    console.log('started playing: '+pair[i].is_playing);
+                }
+                */
             }
         }
 
-        if (self.pairs.length > 0) {
-            setTimeout(self._run_loop, 5000);
+        if (self.pairs.length <= 0) {
+            clearInterval(self.timeout_id);
+            self.timeout_id = null;
         }
     }
 
@@ -67,13 +81,17 @@ function Lobby(game) {
             self.is_running = false;
         }
 
-        console.log(self.games.length);
         console.log(self.pairs.length);
         console.log('a game ended');
     }
 
     self.end_game = function () {
-        for (var i=0; i<self.games; i++) {
+        if (self.timeout_id != null) {
+            clearInterval(self.timeout_id);
+            self.timeout_id = null;
+        }
+
+        for (var i=0; i<self.games.length; i++) {
             self.games[i].end(self.game_ended);
         }
     }
@@ -96,7 +114,7 @@ function Lobby(game) {
     self.pair_players = function () {
         self.pairs = new Array();
 
-        for (var i = 0; i <= self.players.length; i++) {
+        for (var i = 0; i < self.players.length; i++) {
             for (var j = i+1; j < self.players.length; j += self.game.num_per_round - 1) {
                 new_pair = self.players.slice(j, j + self.game.num_per_round - 1);
                 new_pair.push(self.players[i]);
