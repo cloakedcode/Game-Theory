@@ -1,20 +1,30 @@
 // each person connected is represented by a Player object
 function Player(socket) {
-    this.socket = socket;
-    this.opponent = null;
-    this.lobby = null;
+    var self = this;
+    self.socket = socket;
+    self.lobby = null;
+    self.callback = null;
 
-    this.set_status = function (msg) {
-        this.socket.emit('status', msg);
+    self.hash = '';
+    self.username = '';
+
+    self.set_status = function (msg) {
+        self.socket.emit('status', msg);
     };
 
-    this.set_lobby = function (lobby) {
-        this.lobby = lobby;
-        this.set_status("You have joined the game lobby.");
+    self.ask_for_choice = function (options, callback) {
+        self.callback = callback;
+        self.socket.on('choice', self._callback);
+        self.socket.emit('choice', options);
     };
 
-    this.has_opponent = function () {
-        return (this.opponent != null);
+    self._callback = function () {
+        self.callback(self, arguments[0]);
+    }
+
+    self.set_lobby = function (lobby) {
+        self.lobby = lobby;
+        self.set_status("You have joined the game lobby.");
     };
 };
 

@@ -42,6 +42,7 @@ app.post('/admin.html', function (req, res) {
         socket_server.stop_lobby(req.body.game_id);
     }
 
+    console.log(socket_server.lobbies.length);
     res.redirect('/admin.html');
 });
 
