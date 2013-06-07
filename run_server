@@ -6,6 +6,6 @@ while [[ true ]]
 do
     node server.js &
     SERVER_PID=$!
-    inotifywait --excludei .swp --excludei games/.swp -e modify server.js src/ public/ views/
+    inotifywait --excludei .swp -e modify server.js src/ public/ views/ games/
     kill -15 $SERVER_PID
 done

@@ -3,6 +3,7 @@ function Player(socket) {
     var self = this;
     self.socket = socket;
     self.lobby = null;
+    self.is_playing = false;
     self.callback = null;
 
     self.hash = '';
