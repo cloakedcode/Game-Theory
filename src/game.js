@@ -53,6 +53,7 @@ function Game (name) {
     self.game_ended = function () {
         for (var i=0; i<self.players.length; i++) {
             self.players[i].is_playing = false;
+            self.players[i].round_ended();
         }
         
         if (self.callback != undefined) {

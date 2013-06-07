@@ -3,10 +3,14 @@
     <style>
        #status {
            height: 30px;
-           width: 100%;
+           width: 50%;
            color: gray;
            text-align: center;
            font-size: 18pt;
+       }
+
+       #auth {
+           display: none;
        }
     </style>
 
@@ -34,13 +38,10 @@
             $('.choice').click(choice_selected);
         });
 
-        socket.on('authenticate', function (data) {
-            if (data.allowed == true) {
-                $('#auth').hide();
-                $.cookie("auth", data.cookie);
-            } else {
-                alert('Incorrect username or password. Please try again.');
-            }
+        socket.on('round_ended', function () {
+            $('#msg').html('');
+            $('#choices').html('');
+            $('#choice').html('');
         });
 
         function choice_selected() {
@@ -49,9 +50,15 @@
         }
 
         function send_authentication() {
-            socket.emit('authenticate', {username: $('#username').val()
-                                        , password: $('#password').val()
-            });
+            socket.emit('authenticate', {username: $('#username').val(), password: $('#password').val()},
+                function (valid, cookie) {
+                    if (valid == true) {
+                        $('#auth').hide();
+                        $.cookie("auth", cookie);
+                    } else {
+                        alert('Incorrect username or password. Please try again.');
+                    }
+                });
 
             return false;
         }
@@ -59,8 +66,11 @@
         $(document).ready(function () {
             $('#auth_form').submit(send_authentication);
 
-            // @TODO: remove this when production ready
-            //socket.emit('authenticate', {cookie: $.cookie('auth')});
+            socket.emit('check_cookie', $.cookie('auth'), function (valid) {
+                    if (valid == false) {
+                        $('#auth').show();
+                    }
+                });
         });
     </script>
 </head>
@@ -78,7 +88,7 @@
     <form id='auth_form' method='post'>
         <label>Username</label><input id='username' type='text' name='username' />
         <br>
-        <label>Password</label><input id='password' type='text' name='password' />
+        <label>Password</label><input id='password' type='password' name='password' />
         <br>
         <input type='submit' value='Login' />
     </form>
