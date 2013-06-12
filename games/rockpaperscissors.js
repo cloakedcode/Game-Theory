@@ -13,21 +13,26 @@ exports.play = function (players, callback) {
     _players[0].opponent = _players[1];
     _players[1].opponent = _players[0];
 
-    for (var i=0; i<players.length; i++) {
-        players[i].ask_for_choice({msg: "Choose your weapon!", choices: _options}
-                , function (player, choice) {
-                    if (_options.indexOf(choice) >= 0) {
-                        player.weapon = choice;
-                    }
-                });
-        setTimeout(countdown, 2000, players[i], 3);
-    }
+    _players[0].set_status('Get ready...');
+    _players[1].set_status('Get ready...');
+
+    setTimeout(function (players, _options) {
+        for (var i=0; i<players.length; i++) {
+                countdown(players[i], 3);
+                players[i].ask_for_choice({msg: "Choose your weapon!", choices: _options}
+                        , function (player, choice) {
+                            if (_options.indexOf(choice) >= 0) {
+                                player.weapon = choice;
+                            }
+                        });
+        }
+    }, 2000, players, _options);
 
 }
 
 function countdown(player, seconds) {
     if (seconds >= 0) {
-        player.set_status("You have " + seconds + " to choose...");
+        player.set_status("You have " + seconds + " seconds to choose...");
         setTimeout(countdown, 1000, player, seconds -1);
     } else {
         game_over();
