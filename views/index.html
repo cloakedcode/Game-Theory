@@ -1,17 +1,22 @@
 <html>
 <head>
     <style>
-       #status {
-           height: 30px;
-           width: 50%;
-           color: gray;
-           text-align: center;
-           font-size: 18pt;
-       }
+        body {
+            font-size: 22pt;
+            text-align: center;
+        }
 
-       #auth {
+        input {
+            font-size: 16pt;
+        }
+
+        #status {
+           color: gray;
+        }
+
+        #auth {
            display: none;
-       }
+        }
     </style>
 
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
@@ -29,8 +34,8 @@
 
             var html = "";
             for (var i=0; i<data.choices.length; i++) {
-                html += "<button class='choice' value='" + data.choices[i] + "'>" + data.choices[i]
-                    + "</button>";
+                html += "<input type='submit' class='choice' value='" +
+                data.choices[i] + "' name='" + data.choices[i] + "' >";
             }
 
             $('#choices').html(html);
