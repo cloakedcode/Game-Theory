@@ -1,4 +1,4 @@
-Game = require('../src/game.js').Game;
+Game = require('../src/game.js');
 
 function Lobby(game) {
     var self = this;
@@ -9,7 +9,7 @@ function Lobby(game) {
     self.games = null;
     self.timeout_id = null;
 
-    if (game instanceof Game == false) {
+    if (game instanceof Game.Game == false) {
         throw "'game' must be of the type Game";
     }
 
@@ -37,17 +37,18 @@ function Lobby(game) {
                 }
             }
 
+            console.log("skip: " + skip);
             if (skip == false) {
-                Game({name: self.game.name}, function (game) {
-                    self.games.push(game);
-                    game.play(pair, self.game_ended);
-                });
+                game = Game({name: self.game.name});
+                self.games.push(game);
+                game.play(pair, self.game_ended);
             }
         }
 
         if (self.pairs.length <= 0) {
             clearInterval(self.timeout_id);
             self.timeout_id = null;
+            self.is_running = false;
         }
     }
 
