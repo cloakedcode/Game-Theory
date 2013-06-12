@@ -3,12 +3,15 @@ var Game = require('src/game.js')
     , Player = require('src/player.js')
     , crypto = require('crypto')
     , ldap = require('ldapjs')
+    , Log = require('src/logger.js')
 
 var salt = 'long_salty string that NOONE will ever guess';
 var ldapclient = ldap.createClient({
     url: 'ldaps://gc.goshen.edu:636',
     bindDN: 'dc="gc",dc="goshen",dc="edu"',
+    maxConnections: 1
 });
+var logger = new Log;
 
 exports.listen = function (app) {
     return new GameServer().listen(app);
@@ -30,7 +33,7 @@ function GameServer() {
     }
 
     self.create_lobby = function (game_name) {
-        console.log('created lobby with game: ' + game_name);
+        logger.info('created lobby with game: ' + game_name);
 
         Game({name: game_name}, function (game) {
             lobby = Lobby(game);
@@ -57,7 +60,7 @@ function GameServer() {
     }
 
     self.player_joined = function (socket) {
-        console.log('player joined');
+        logger.info('player joined');
 
         socket.on('disconnect', self.player_disconnected);
         socket.on('authenticate', self.authenticate_user);
@@ -69,24 +72,23 @@ function GameServer() {
         found = false;
         hash = crypto.createHash('md5').update(data.username + data.password + salt).digest("hex");
 
-        // @TODO: replace with LDAP authentication
-        valid = ldapclient.bind('cn='+data.username, data.password, function (err) {
-            if (err) {
+        console.log('authenticating...');
+        ldapclient.bind('cn='+data.username, data.password, function (err, res) {
+            console.log(err);
+            console.log(res);
+            if (err instanceof ldap.LDAPError) {
                 return callback(false);
             }
-        })
-        console.log("valid: "+valid);
-        if (valid) {
             socket.emit('status', 'Authenticated');
 
             noob = Player(socket);
             noob.hash = hash;
-            console.log(hash + " joined for the first time");
+            logger.debug(hash + " joined for the first time");
 
             self.players.push(noob);
 
             noob.username = data.username;
-            console.log(self.players.length);
+            logger.debug(self.players.length);
 
             if (self.lobbies != null && self.lobbies.length > 0) {
                 self.lobbies[0].add_player(noob);
@@ -95,9 +97,7 @@ function GameServer() {
             }
 
             return callback(true, hash);
-        }
-
-        callback (false);
+        })
     }
 
     self.check_cookie = function (hash, callback) {
@@ -106,13 +106,12 @@ function GameServer() {
         for (var i=0; i<self.players.length; i++) {
             noob = self.players[i];
             if (noob.hash == hash) {
-                console.log(noob.hash + " rejoined");
+                logger.debug(noob.hash + " rejoined");
                 noob.socket = socket;
                 found = true;
                 break
             }
         }
-        console.log(self.players.length);
 
         if (found) {
             if (self.lobbies != null && self.lobbies.length > 0) {

@@ -31,30 +31,17 @@ function Lobby(game) {
             skip = false;
             pair = self.pairs[i];
             for (var j = 0; j < pair.length; j++) {
-                console.log('is playing: '+pair[j].is_playing);
                 if (pair[j].socket == null || pair[j].is_playing) {
                     skip = true;
                     break;
                 }
             }
 
-            console.log("skip: "+skip);
             if (skip == false) {
                 Game({name: self.game.name}, function (game) {
                     self.games.push(game);
                     game.play(pair, self.game_ended);
-
-                    for (var j = 0; j < pair.length; j++) {
-                        console.log('is playing now: '+pair[j].is_playing);
-                    }
                 });
-
-                /*
-                for (var i=0; i<pair.length; i++) {
-                    pair[i].is_playing = true;
-                    console.log('started playing: '+pair[i].is_playing);
-                }
-                */
             }
         }
 
@@ -80,9 +67,6 @@ function Lobby(game) {
         if (self.games.length <= 0) {
             self.is_running = false;
         }
-
-        console.log(self.pairs.length);
-        console.log('a game ended');
     }
 
     self.end_game = function () {
