@@ -42,7 +42,7 @@ function Lobby(game) {
             if (skip == false) {
                 game = Game({name: self.game.name});
                 self.games.push(game);
-                game.play(pair, self.game_ended);
+                game.play(pair, self._game_ended);
             }
         }
 
@@ -53,7 +53,10 @@ function Lobby(game) {
         }
     }
 
-    self.game_ended = function (game, players) {
+    /**
+     * this is an internal function that should never be called directly.
+     */
+    self._game_ended = function (game, players) {
         // remove game from list of games now that it has ended
         i = self.games.indexOf(game);
         if (i >= 0) {
@@ -78,7 +81,7 @@ function Lobby(game) {
         }
 
         for (var i=0; i<self.games.length; i++) {
-            self.games[i].end(self.game_ended);
+            self.games[i].end(self._game_ended);
         }
     }
 
@@ -93,6 +96,7 @@ function Lobby(game) {
     self.remove_player = function (player) {
         i = self.players.indexOf(player);
         if (i >= 0) {
+            self.players[i].set_lobby(null);
             self.players.splice(i, 1);
         }
     }
