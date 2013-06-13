@@ -35,12 +35,11 @@ function GameServer() {
     self.create_lobby = function (game_name) {
         logger.info('created lobby with game: ' + game_name);
 
-        Game({name: game_name}, function (game) {
-            lobby = Lobby(game);
+        game = Game({name: game_name});
+        lobby = Lobby(game);
 
-            self.lobbies.push(lobby);
-            self.put_players_in_lobby(lobby);
-        });
+        self.lobbies.push(lobby);
+        self.put_players_in_lobby(lobby);
     }
 
     self.start_lobby = function (game_name) {
@@ -72,10 +71,8 @@ function GameServer() {
         found = false;
         hash = crypto.createHash('md5').update(data.username + data.password + salt).digest("hex");
 
-        console.log('authenticating...');
+        logger.info('authenticating...');
         ldapclient.bind('cn='+data.username, data.password, function (err, res) {
-            console.log(err);
-            console.log(res);
             if (err instanceof ldap.LDAPError) {
                 return callback(false);
             }
@@ -134,6 +131,7 @@ function GameServer() {
 
                 self.players.splice(i, 1);
                 noob.lobby.remove_player(noob);
+                noob.set_status('You disconnected. Reload the page.');
 
                 delete noob;
 

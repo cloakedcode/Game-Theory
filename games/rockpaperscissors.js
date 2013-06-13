@@ -13,21 +13,15 @@ exports.play = function (players, callback) {
     _players[0].opponent = _players[1];
     _players[1].opponent = _players[0];
 
-    _players[0].set_status('Get ready...');
-    _players[1].set_status('Get ready...');
-
-    setTimeout(function (players, _options) {
-        for (var i=0; i<players.length; i++) {
-                countdown(players[i], 3);
-                players[i].ask_for_choice({msg: "Choose your weapon!", choices: _options}
-                        , function (player, choice) {
-                            if (_options.indexOf(choice) >= 0) {
-                                player.weapon = choice;
-                            }
-                        });
-        }
-    }, 2000, players, _options);
-
+    for (var i=0; i<players.length; i++) {
+        countdown(players[i], 3);
+        players[i].ask_for_choice({msg: "Choose your weapon!", choices: _options}
+                , function (player, choice) {
+                    if (_options.indexOf(choice) >= 0) {
+                        player.weapon = choice;
+                    }
+                });
+    }
 }
 
 function countdown(player, seconds) {
