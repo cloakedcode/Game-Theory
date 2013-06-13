@@ -18,11 +18,13 @@ function Lobby(game) {
     self.run_game = function () {
         self.is_running = true;
 
-        self.pair_players();
+        if (self.players.length > 0) {
+            self.pair_players();
 
-        self.games = new Array();
+            self.games = new Array();
 
-        self.timeout_id = setInterval(self._run_loop, 750);
+            self.timeout_id = setInterval(self._run_loop, 900);
+        }
     }
 
     self._run_loop = function () {
@@ -37,7 +39,6 @@ function Lobby(game) {
                 }
             }
 
-            console.log("skip: " + skip);
             if (skip == false) {
                 game = Game({name: self.game.name});
                 self.games.push(game);
@@ -85,6 +86,7 @@ function Lobby(game) {
         if (self.players.indexOf(player) < 0) {
             self.players.push(player);
             player.set_lobby(self);
+            player.set_status("You have joined the game lobby.");
         }
     }
 

@@ -20,6 +20,7 @@ function Player(socket) {
     self.ask_for_choice = function (options, callback) {
         self.callback = callback;
         self.socket.on('choice', self._callback);
+
         self.socket.emit('choice', options);
     };
 
@@ -29,7 +30,6 @@ function Player(socket) {
 
     self.set_lobby = function (lobby) {
         self.lobby = lobby;
-        self.set_status("You have joined the game lobby.");
     };
 };
 

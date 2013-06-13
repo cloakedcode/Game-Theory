@@ -27,24 +27,6 @@ function Game (name) {
         }
 
         callback(self);
-        /*
-        fs.readdir('games/', function (err, files) {
-            for (i in files) {
-                if (files[i][0] != '.') {
-                    f = require('games/' + files[i]);
-                    if (name.name == f.name) {
-                        self.num_per_round = f.num_per_round;
-                        self.name = f.name;
-
-                        self._play = f.play;
-                        break;
-                    }
-                }
-            }
-
-            callback(self);
-        });
-        */
     } else {
         included = require('games/' + name + '.js');
 
@@ -62,13 +44,13 @@ function Game (name) {
 
         for (var i=0; i<self.players.length; i++) {
             self.players[i].is_playing = true;
+            self.players[i].set_status('Get ready...');
         }
 
-        return self._play(self.players, self.game_ended);
+        setTimeout(self._play, 2000, self.players, self.game_ended);
     }
 
     self.game_ended = function () {
-        console.log('game ended');
         for (var i=0; i<self.players.length; i++) {
             self.players[i].is_playing = false;
             self.players[i].round_ended();
