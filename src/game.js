@@ -1,6 +1,6 @@
 var fs = require('fs')
 
-var GAME_DIR = 'games/';
+var GAME_DIR = __dirname + '/../games/';
 
 function Game (options) {
     var self = this;
@@ -26,6 +26,11 @@ function Game (options) {
             }
         }
     }
+
+    if (self.name == undefined) {
+        throw "Game created with non-existent game name.";
+    }
+
 
     callback(self);
 
