@@ -18,6 +18,8 @@ function Lobby(game) {
     self.run_game = function () {
         self.is_running = true;
 
+        self._load_bots();
+
         if (self.players.length > 0) {
             self.pair_players();
 
@@ -113,7 +115,14 @@ function Lobby(game) {
                 self.pairs.push(new_pair);
             }
         }
-    };
+    }
+
+    self._load_bots = function () {
+        bots = self.game.bots();
+        for (var i=0; i<bots.length; i++) {
+            self.add_player(bots[i]);
+        }
+    }
 }
 
 module.exports = exports = function (game) { return new Lobby(game) };

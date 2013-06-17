@@ -3,15 +3,33 @@ Game = require('../src/game.js')
 , fs = require('fs')
 
 exports.setUp = function (callback) {
-    fs.writeFileSync(__dirname + '/../games/nodeunit_test_game.js', "module.exports = exports = {name: 'Test', play: function (pair, callback) {callback()}, num_per_round: 2}");
-    
-    callback();
+    dest = __dirname + '/../games/nodeunit_mock_game';
+    fs.exists(dest, function (exists) {
+        if (exists) {
+            fs.mkdir(dest, function () {
+                config = fs.createWriteStream(dest + '/config.json');
+                config.on('finish', function () {
+                    stream = fs.createWriteStream(dest + '/game.js');
+                    stream.on('finish', function () {
+                        console.log('created temp dir');
+                        callback();
+                    });
+                    fs.createReadStream(__dirname + '/mock_game/game.js').pipe(stream);
+                });
+                fs.createReadStream(__dirname + '/mock_game/config.json').pipe(config);
+            })
+        }
+    })
 }
 
 exports.tearDown = function (callback) {
-    fs.unlinkSync(__dirname + '/../games/nodeunit_test_game.js');
-
-    callback();
+    dir = __dirname + '/../games/nodeunit_mock_game';
+    fs.unlink(dir + '/config.json', function () {
+        fs.unlink(dir + '/game.js', function () {
+            console.log('removed temp dir');
+            fs.rmdir(dir, callback);
+        })
+    })
 }
 
 exports.create_lobby = function (test) {

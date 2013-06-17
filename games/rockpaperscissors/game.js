@@ -1,7 +1,3 @@
-exports.num_per_round = 2;
-
-exports.name = "Rock, Paper, Scissors";
-
 var _options = ["Rock", "Paper", "Scissors"];
 var _players = new Array;
 var _end_callback = null;
