@@ -9,7 +9,11 @@
         "mocha": "1.11.0",
         "mustache": "0.7.2",
         "ldapjs": "0.6.3",
+        "should": "1.2.2",
         "sqlite3": "2.1.7",
         "socket.io": "0.9.14"
+    },
+    "scripts" : {
+        "test" : "make test"
     }
 }
