@@ -32,8 +32,8 @@ function Lobby(game) {
     self._run_loop = function () {
         // for each pair of players
         for (var i = 0; i < self.pairs.length; i++) {
-            skip = false;
-            pair = self.pairs[i];
+            var skip = false;
+            var pair = self.pairs[i];
             for (var j = 0; j < pair.length; j++) {
                 if (pair[j].socket == null || pair[j].is_playing) {
                     skip = true;
@@ -42,7 +42,7 @@ function Lobby(game) {
             }
 
             if (skip == false) {
-                game = Game({name: self.game.name});
+                var game = Game({name: self.game.name});
                 self.games.push(game);
                 game.play(pair, self._game_ended);
             }
@@ -60,7 +60,7 @@ function Lobby(game) {
      */
     self._game_ended = function (game, players) {
         // remove game from list of games now that it has ended
-        i = self.games.indexOf(game);
+        var i = self.games.indexOf(game);
         if (i >= 0) {
             self.games.splice(i, 1);
         }
@@ -96,7 +96,7 @@ function Lobby(game) {
     }
 
     self.remove_player = function (player) {
-        i = self.players.indexOf(player);
+        var i = self.players.indexOf(player);
         if (i >= 0) {
             self.players[i].set_lobby(null);
             self.players.splice(i, 1);
@@ -109,7 +109,7 @@ function Lobby(game) {
 
         for (var i = 0; i < self.players.length; i++) {
             for (var j = i+1; j < self.players.length; j += self.game.num_per_round - 1) {
-                new_pair = self.players.slice(j, j + self.game.num_per_round - 1);
+                var new_pair = self.players.slice(j, j + self.game.num_per_round - 1);
                 new_pair.push(self.players[i]);
 
                 self.pairs.push(new_pair);

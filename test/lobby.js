@@ -4,11 +4,11 @@ Game = require('../src/game.js')
 
 describe('Game', function () {
     before(function (done) {
-        dest = __dirname + '/../games/nodeunit_mock_game';
+        var dest = __dirname + '/../games/nodeunit_mock_game';
         fs.mkdir(dest, function () {
-            config = fs.createWriteStream(dest + '/config.json');
+            var config = fs.createWriteStream(dest + '/config.json');
             config.on('finish', function () {
-                stream = fs.createWriteStream(dest + '/game.js');
+                var stream = fs.createWriteStream(dest + '/game.js');
                 stream.on('finish', function () {
                     done();
                 });
@@ -19,7 +19,7 @@ describe('Game', function () {
     })
 
     after(function (done) {
-        dir = __dirname + '/../games/nodeunit_mock_game';
+        var dir = __dirname + '/../games/nodeunit_mock_game';
         fs.unlink(dir + '/config.json', function () {
             fs.unlink(dir + '/game.js', function () {
                 fs.rmdir(dir, done);
@@ -38,6 +38,8 @@ describe('Game', function () {
     })
 
     describe('#add player', function () {
+        var lobby, player;
+
         before(function () {
             lobby = Lobby(Game({name: 'Test'}));
             player = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, name: 'fake'};
@@ -60,6 +62,8 @@ describe('Game', function () {
     })
 
     describe('#remove player', function () {
+        var lobby, player;
+
         before(function () {
             lobby = Lobby(Game({name: 'Test'}));
             player = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, name: 'fake'};
@@ -79,10 +83,10 @@ describe('Game', function () {
 
     describe('#pair players', function () {
         it('should create 3 pairs from 3 players', function () {
-            lobby = Lobby(Game({name: 'Test'}));
-            player = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, round_ended: function () {}, name: 'fake'};
-            player2 = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, round_ended: function () {}, name: 'fake2'};
-            player3 = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, round_ended: function () {}, name: 'fake3'};
+            var lobby = Lobby(Game({name: 'Test'}));
+            var player = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, round_ended: function () {}, name: 'fake'};
+            var player2 = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, round_ended: function () {}, name: 'fake2'};
+            var player3 = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, round_ended: function () {}, name: 'fake3'};
 
             lobby.add_player(player);
             lobby.add_player(player2);
