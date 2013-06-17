@@ -6,6 +6,8 @@ function Game (options) {
     var self = this;
 
     self.players = null;
+    self.bots = null;
+    self.dir_path = null;
 
     if (options === undefined) {
         throw "Game objects must be created with an existing game name.";
@@ -13,16 +15,21 @@ function Game (options) {
 
     callback = arguments[1] || function () {};
 
+    // @TODO: cache the games found and load game from that
     files = fs.readdirSync(GAME_DIR);
     for (var i=0; i<files.length; i++) {
         if (files[i][0] != '.') {
-            f = require(GAME_DIR + files[i]);
-            if (options.name == f.name) {
-                self.num_per_round = f.num_per_round;
-                self.name = f.name;
+            path = GAME_DIR + files[i];
 
-                self._play = f.play;
-                break;
+            if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
+                f = require(path + '/config.json');
+                if (options.name == f.name) {
+                    self.dir_path = path;
+                    self.num_per_round = f.num_per_round;
+                    self.name = f.name;
+
+                    break;
+                }
             }
         }
     }
@@ -43,6 +50,8 @@ function Game (options) {
             self.players[i].set_status('Get ready...');
         }
 
+        self._play = require(self.dir_path + '/game.js').play;
+
         setTimeout(self._play, 2000, self.players, self.game_ended);
     }
 
@@ -55,6 +64,24 @@ function Game (options) {
         if (self.callback != undefined) {
             self.callback(self, self.players);
         }
+    }
+
+    self.bots = function () {
+        if (self.bots == null) {
+            self.bots = new Array();
+
+            dir = self.dir_path + '/bots';
+            if (fs.existsSync(dir)) {
+                files = fs.readdirSync(dir);
+                for (var i=0; i<files.length; i++) {
+                    if (files[i][0] != '.') {
+                        self.bots.push(require(dir + '/' + files[i]).Bot);
+                    }
+                }
+            }
+        }
+
+        return self.bots;
     }
 }
 
