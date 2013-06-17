@@ -4,16 +4,26 @@ var Game = require(__dirname + '/../src/game.js')
 describe('Game', function () {
     before(function (done) {
         var dest = __dirname + '/../games/nodeunit_mock_game';
-        fs.mkdir(dest, function () {
-            var config = fs.createWriteStream(dest + '/config.json');
-            config.on('finish', function () {
-                var stream = fs.createWriteStream(dest + '/game.js');
-                stream.on('finish', function () {
-                    done();
+        fs.exists(dest, function (exists) {
+            if (exists) {
+                return done();
+            }
+
+            fs.mkdir(dest, function () {
+                var config = fs.createWriteStream(dest + '/config.json');
+                config.on('finish', function () {
+                    var stream = fs.createWriteStream(dest + '/game.js');
+                    stream.on('finish', function () {
+                        fs.mkdirSync(dest + '/bots');
+
+                        var bot = fs.createWriteStream(dest + '/bots/bot.js');
+                        bot.on('finish', done);
+                        fs.createReadStream(__dirname + '/mock_game/bots/bot.js').pipe(bot);
+                    });
+                    fs.createReadStream(__dirname + '/mock_game/game.js').pipe(stream);
                 });
-                fs.createReadStream(__dirname + '/mock_game/game.js').pipe(stream);
-            });
-            fs.createReadStream(__dirname + '/mock_game/config.json').pipe(config);
+                fs.createReadStream(__dirname + '/mock_game/config.json').pipe(config);
+            })
         })
     })
 
@@ -21,6 +31,8 @@ describe('Game', function () {
         var dir = __dirname + '/../games/nodeunit_mock_game';
         fs.unlink(dir + '/config.json', function () {
             fs.unlink(dir + '/game.js', function () {
+                fs.unlinkSync(dir + '/bots/bot.js');
+                fs.rmdirSync(dir + '/bots');
                 fs.rmdir(dir, done);
             })
         })
@@ -49,10 +61,19 @@ describe('Game', function () {
                 pair[0].is_playing.should.be.true;
                 end();
             };
+            this.timeout(3000);
             game.play([Player, Player2], function (game, players) {
                 players[0].is_playing.should.not.be.true;
                 done();
             });
+        })
+    })
+
+    describe('#bots', function () {
+        it('should return array of bots', function () {
+            var game = Game({name: 'Test'});
+
+            game.bots().should.have.length(1);
         })
     })
 
