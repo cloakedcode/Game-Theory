@@ -4,12 +4,14 @@ test:
 	@NODE_ENV=test ./node_modules/.bin/mocha \
 		--reporter $(REPORTER) \
 		--timeout 5000 \
+		--check-leaks \
 		--require should
 
 test-w:
 	@NODE_ENV=test ./node_modules/.bin/mocha \
 		--reporter $(REPORTER) \
 		--require should \
+		--check-leaks \
 		--growl \
 		--watch
 
