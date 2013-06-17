@@ -18,18 +18,18 @@ function Game (options) {
     // @TODO: cache the games found and load game from that
     files = fs.readdirSync(GAME_DIR);
     for (var i=0; i<files.length; i++) {
-        if (files[i][0] != '.') {
-            path = GAME_DIR + files[i];
+        path = GAME_DIR + files[i];
 
-            if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
-                f = require(path + '/config.json');
-                if (options.name == f.name) {
-                    self.dir_path = path;
-                    self.num_per_round = f.num_per_round;
-                    self.name = f.name;
+        if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
+            f = require(path + '/config.json');
+            if (options.name == f.name) {
+                self.dir_path = path;
+                self.num_per_round = f.num_per_round;
+                self.name = f.name;
 
-                    break;
-                }
+                self.launch_game = require(self.dir_path + '/game.js').play;
+
+                break;
             }
         }
     }
@@ -50,9 +50,9 @@ function Game (options) {
             self.players[i].set_status('Get ready...');
         }
 
-        self._play = require(self.dir_path + '/game.js').play;
-
-        setTimeout(self._play, 2000, self.players, self.game_ended);
+        self.launch_game(self.players, self.game_ended);
+        // @TODO: include this game start delay elsewhere
+        //setTimeout(self._play, 2000, self.players, self.game_ended);
     }
 
     self.game_ended = function () {
@@ -96,9 +96,8 @@ exports.available_games = function (callback) {
         var games = new Array;
 
         for (i in files) {
-            if (files[i][0] != '.') {
-                // name is the file name minus the ".js" extension
-                name = require(GAME_DIR + files[i]).name;
+            if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
+                name = require(path + '/config.json').name;
                 games.push({name: name});
             }
         }
@@ -111,9 +110,8 @@ exports.exists = function (name, callback) {
     // return an array of the file names in the games directory
     fs.readdir(GAME_DIR, function (err, files) {
         for (i in files) {
-            if (files[i][0] != '.') {
-                // name is the file name minus the ".js" extension
-                game_name = require(GAME_DIR + files[i]).name;
+            if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
+                game_name = require(path + '/config.json').name;
 
                 if (name == game_name) {
                     return callback(true);
