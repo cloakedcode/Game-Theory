@@ -3,11 +3,11 @@ var Game = require(__dirname + '/../src/game.js')
 
 describe('Game', function () {
     before(function (done) {
-        dest = __dirname + '/../games/nodeunit_mock_game';
+        var dest = __dirname + '/../games/nodeunit_mock_game';
         fs.mkdir(dest, function () {
-            config = fs.createWriteStream(dest + '/config.json');
+            var config = fs.createWriteStream(dest + '/config.json');
             config.on('finish', function () {
-                stream = fs.createWriteStream(dest + '/game.js');
+                var stream = fs.createWriteStream(dest + '/game.js');
                 stream.on('finish', function () {
                     done();
                 });
@@ -18,7 +18,7 @@ describe('Game', function () {
     })
 
     after(function (done) {
-        dir = __dirname + '/../games/nodeunit_mock_game';
+        var dir = __dirname + '/../games/nodeunit_mock_game';
         fs.unlink(dir + '/config.json', function () {
             fs.unlink(dir + '/game.js', function () {
                 fs.rmdir(dir, done);
@@ -33,7 +33,7 @@ describe('Game', function () {
         });
 
         it('should create game', function () {
-            game = Game({name: 'Test'});
+            var game = Game({name: 'Test'});
             game.should.exist;
             game.should.have.property('name', 'Test');
         })
@@ -41,10 +41,10 @@ describe('Game', function () {
 
     describe('#play', function () {
         it('should mark players as playing', function (done) {
-            Player = {is_playing: false, set_status: function () {}, round_ended: function () {}};
-            Player2 = {is_playing: false, set_status: function () {}, round_ended: function () {}};
+            var Player = {is_playing: false, set_status: function () {}, round_ended: function () {}};
+            var Player2 = {is_playing: false, set_status: function () {}, round_ended: function () {}};
 
-            game = Game({name: 'Test'});
+            var game = Game({name: 'Test'});
             game.launch_game = function (pair, end) {
                 pair[0].is_playing.should.be.true;
                 end();
