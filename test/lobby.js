@@ -2,31 +2,7 @@ var Lobby = require('../src/lobby.js'),
 Game = require('../src/game.js')
 , fs = require('fs')
 
-describe('Game', function () {
-    before(function (done) {
-        var dest = __dirname + '/../games/nodeunit_mock_game';
-        fs.mkdir(dest, function () {
-            var config = fs.createWriteStream(dest + '/config.json');
-            config.on('finish', function () {
-                var stream = fs.createWriteStream(dest + '/game.js');
-                stream.on('finish', function () {
-                    done();
-                });
-                fs.createReadStream(__dirname + '/mock_game/game.js').pipe(stream);
-            });
-            fs.createReadStream(__dirname + '/mock_game/config.json').pipe(config);
-        })
-    })
-
-    after(function (done) {
-        var dir = __dirname + '/../games/nodeunit_mock_game';
-        fs.unlink(dir + '/config.json', function () {
-            fs.unlink(dir + '/game.js', function () {
-                fs.rmdir(dir, done);
-            })
-        })
-    })
-
+describe('Lobby', function () {
     describe('#create', function () {
         it('should create with valid game name', function () {
             (function () {Lobby(Game({name: 'Test'}))}).should.not.throw;

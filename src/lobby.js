@@ -1,4 +1,5 @@
-Game = require('../src/game.js');
+var Game = require(__dirname + '/game.js')
+    , db = require(__dirname + '/db.js')
 
 function Lobby(game) {
     var self = this;
@@ -44,6 +45,7 @@ function Lobby(game) {
             if (skip == false) {
                 var game = Game({name: self.game.name});
                 self.games.push(game);
+                game.db = db();
                 game.play(pair, self._game_ended);
             }
         }
