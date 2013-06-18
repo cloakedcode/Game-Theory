@@ -35,7 +35,7 @@ function Lobby(game) {
             var skip = false;
             var pair = self.pairs[i];
             for (var j = 0; j < pair.length; j++) {
-                if (pair[j].socket == null || pair[j].is_playing) {
+                if (pair[j].is_connected() == false || pair[j].is_playing) {
                     skip = true;
                     break;
                 }
@@ -118,7 +118,7 @@ function Lobby(game) {
     }
 
     self._load_bots = function () {
-        bots = self.game.bots();
+        var bots = self.game.bots();
         for (var i=0; i<bots.length; i++) {
             self.add_player(bots[i]);
         }

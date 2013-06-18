@@ -1,0 +1,16 @@
+#!/bin/bash
+
+for P in $@
+do
+    echo $P
+    export BOT_PATH=$P
+    ./node_modules/.bin/mocha \
+        --reporter dot \
+        --require should \
+        ./test/bot.js
+done
+#find $1 -name \*.js -exec sh -c "export BOT_PATH='{}' ; \
+#    ./node_modules/.bin/mocha \
+#        --reporter dot \
+#        --require should \
+#        test/bot.js" \;
