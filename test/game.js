@@ -1,43 +1,6 @@
 var Game = require(__dirname + '/../src/game.js')
-, fs = require('fs')
 
 describe('Game', function () {
-    before(function (done) {
-        var dest = __dirname + '/../games/nodeunit_mock_game';
-        fs.exists(dest, function (exists) {
-            if (exists) {
-                return done();
-            }
-
-            fs.mkdir(dest, function () {
-                var config = fs.createWriteStream(dest + '/config.json');
-                config.on('finish', function () {
-                    var stream = fs.createWriteStream(dest + '/game.js');
-                    stream.on('finish', function () {
-                        fs.mkdirSync(dest + '/bots');
-
-                        var bot = fs.createWriteStream(dest + '/bots/bot.js');
-                        bot.on('finish', done);
-                        fs.createReadStream(__dirname + '/mock_game/bots/bot.js').pipe(bot);
-                    });
-                    fs.createReadStream(__dirname + '/mock_game/game.js').pipe(stream);
-                });
-                fs.createReadStream(__dirname + '/mock_game/config.json').pipe(config);
-            })
-        })
-    })
-
-    after(function (done) {
-        var dir = __dirname + '/../games/nodeunit_mock_game';
-        fs.unlink(dir + '/config.json', function () {
-            fs.unlink(dir + '/game.js', function () {
-                fs.unlinkSync(dir + '/bots/bot.js');
-                fs.rmdirSync(dir + '/bots');
-                fs.rmdir(dir, done);
-            })
-        })
-    })
-
     describe('#create', function () {
         it('should fail with invalid name', function () {
             (function () { Game() }).should.throw;

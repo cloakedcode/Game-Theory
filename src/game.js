@@ -1,6 +1,6 @@
 var fs = require('fs')
 
-var GAME_DIR = __dirname + '/../games/';
+exports.GAME_DIR = __dirname + '/../games/';
 
 function Game (options) {
     var self = this;
@@ -9,6 +9,10 @@ function Game (options) {
     self._bots = null;
     self.dir_path = null;
 
+    if ((options instanceof Object) === false) {
+        throw "Game objects must be created with {name: ''} parameter.";
+    }
+
     if (options === undefined) {
         throw "Game objects must be created with an existing game name.";
     }
@@ -16,9 +20,9 @@ function Game (options) {
     var callback = arguments[1] || function () {};
 
     // @TODO: cache the games found and load game from that
-    var files = fs.readdirSync(GAME_DIR);
+    var files = fs.readdirSync(exports.GAME_DIR);
     for (var i=0; i<files.length; i++) {
-        var path = GAME_DIR + files[i];
+        var path = exports.GAME_DIR + '/' + files[i];
 
         if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
             var f = require(path + '/config.json');
@@ -50,7 +54,7 @@ function Game (options) {
             self.players[i].set_status('Get ready...');
         }
 
-        setTimeout(self.launch_game, 2000, self.players, self.game_ended);
+        setTimeout(self.launch_game, 2000, self.players, self.game_ended, self.db);
     }
 
     self.game_ended = function () {
@@ -90,11 +94,11 @@ exports.Game = Game;
 // the callback takes one argument, an array of games found
 exports.available_games = function (callback) {
     // return an array of the file names in the games directory
-    fs.readdir(GAME_DIR, function (err, files) {
+    fs.readdir(exports.GAME_DIR, function (err, files) {
         var games = new Array;
 
         for (var i=0; i<files.length; i++) {
-            var path = GAME_DIR + files[i];
+            var path = exports.GAME_DIR + '/' + files[i];
             if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
                 var name = require(path + '/config.json').name;
                 games.push({name: name});
@@ -107,9 +111,9 @@ exports.available_games = function (callback) {
 
 exports.exists = function (name, callback) {
     // return an array of the file names in the games directory
-    fs.readdir(GAME_DIR, function (err, files) {
+    fs.readdir(exports.GAME_DIR, function (err, files) {
         for (var i=0; i<files.length; i++) {
-            var path = GAME_DIR + files[i];
+            var path = exports.GAME_DIR + '/' + files[i];
             if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
                 var game_name = require(path + '/config.json').name;
 

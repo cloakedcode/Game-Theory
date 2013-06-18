@@ -2,7 +2,7 @@ var _options = ["Rock", "Paper", "Scissors"];
 var _players = new Array;
 var _end_callback = null;
 
-exports.play = function (players, callback) {
+exports.play = function (players, callback, db) {
     _end_callback = callback;
     _players = players;
 
