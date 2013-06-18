@@ -3,7 +3,7 @@
 for P in $@
 do
     echo $P
-    export BOT_PATH=$P
+    export BOT_PATH=`pwd`"/$P"
     ./node_modules/.bin/mocha \
         --reporter dot \
         --require should \
