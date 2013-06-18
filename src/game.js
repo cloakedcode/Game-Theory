@@ -6,7 +6,7 @@ function Game (options) {
     var self = this;
 
     self.players = null;
-    self.bots = null;
+    self._bots = null;
     self.dir_path = null;
 
     if (options === undefined) {
@@ -50,9 +50,7 @@ function Game (options) {
             self.players[i].set_status('Get ready...');
         }
 
-        self.launch_game(self.players, self.game_ended);
-        // @TODO: include this game start delay elsewhere
-        //setTimeout(self._play, 2000, self.players, self.game_ended);
+        setTimeout(self.launch_game, 2000, self.players, self.game_ended);
     }
 
     self.game_ended = function () {
@@ -67,21 +65,21 @@ function Game (options) {
     }
 
     self.bots = function () {
-        if (self.bots == null) {
-            self.bots = new Array();
+        if (self._bots == null) {
+            self._bots = new Array();
 
             var dir = self.dir_path + '/bots';
             if (fs.existsSync(dir)) {
                 var files = fs.readdirSync(dir);
                 for (var i=0; i<files.length; i++) {
                     if (files[i][0] != '.') {
-                        self.bots.push(require(dir + '/' + files[i]).Bot);
+                        self._bots.push(require(dir + '/' + files[i]).Bot);
                     }
                 }
             }
         }
 
-        return self.bots;
+        return self._bots;
     }
 }
 

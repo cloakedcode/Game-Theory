@@ -11,7 +11,7 @@ function Player(socket) {
 
     self.set_status = function (msg) {
         self.socket.emit('status', msg);
-    };
+    }
 
     self.round_ended = function () {
         self.socket.emit('round_ended');
@@ -22,7 +22,7 @@ function Player(socket) {
         self.socket.on('choice', self._callback);
 
         self.socket.emit('choice', options);
-    };
+    }
 
     self._callback = function () {
         self.callback(self, arguments[0]);
@@ -30,7 +30,11 @@ function Player(socket) {
 
     self.set_lobby = function (lobby) {
         self.lobby = lobby;
-    };
-};
+    }
+
+    self.is_connected = function () {
+        return self.socket != undefined && self.socket != null;
+    }
+}
 
 module.exports = exports = function (socket) { return new Player(socket) }
