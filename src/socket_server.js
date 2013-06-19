@@ -67,41 +67,35 @@ function GameServer() {
     }
 
     self.authenticate_user = function (data, callback) {
-        socket = this;
-        found = false;
-        hash = crypto.createHash('md5').update(data.username + data.password + salt).digest("hex");
+        var socket = this;
+        var hash = crypto.createHash('md5').update(data.username + salt).digest("hex");
 
         logger.info('authenticating...');
-        ldapclient.bind('cn='+data.username, data.password, function (err, res) {
-            if (err instanceof ldap.LDAPError) {
-                return callback(false);
-            }
-            socket.emit('status', 'Authenticated');
+        socket.emit('status', 'Authenticated');
 
-            noob = Player(socket);
-            noob.hash = hash;
-            logger.debug(hash + " joined for the first time");
+        var noob = Player(socket);
+        noob.hash = hash;
+        logger.debug(hash + " joined for the first time");
 
-            self.players.push(noob);
+        self.players.push(noob);
 
-            noob.username = data.username;
-            logger.debug(self.players.length);
+        noob.username = data.username;
+        logger.debug(self.players.length);
 
-            if (self.lobbies != null && self.lobbies.length > 0) {
-                self.lobbies[0].add_player(noob);
-            } else {
-                noob.set_status('There are no games for you to join.<br>Wait for one to be created.');
-            }
+        if (self.lobbies != null && self.lobbies.length > 0) {
+            self.lobbies[0].add_player(noob);
+        } else {
+            noob.set_status('There are no games for you to join.<br>Wait for one to be created.');
+        }
 
-            return callback(true, hash);
-        })
+        return callback(true, hash);
     }
 
     self.check_cookie = function (hash, callback) {
-        socket = this;
-        found = false;
+        var socket = this;
+        var found = false;
         for (var i=0; i<self.players.length; i++) {
-            noob = self.players[i];
+            var noob = self.players[i];
             if (noob.hash == hash) {
                 logger.debug(noob.hash + " rejoined");
                 noob.socket = socket;
@@ -127,7 +121,7 @@ function GameServer() {
         // if this socket is in the player array, remove it
         for (i in self.players) {
             if (self.players[i].socket == socket) {
-                noob = self.players[i];
+                var noob = self.players[i];
 
                 self.players.splice(i, 1);
                 noob.lobby.remove_player(noob);

@@ -27,6 +27,7 @@
 
         socket.on('status', function (data) {
             $('#status').html("<p>" + data + "</p>");
+            console.log(data);
         });
 
         socket.on('choice', function (data) {
@@ -55,11 +56,11 @@
         }
 
         function send_authentication() {
-            socket.emit('authenticate', {username: $('#username').val(), password: $('#password').val()},
+            socket.emit('authenticate', {username: $('#username').val()},
                 function (valid, cookie) {
                     if (valid == true) {
                         $('#auth').hide();
-                        $.cookie("auth", cookie);
+                        localStorage['game-key'] = cookie;
                     } else {
                         alert('Incorrect username or password. Please try again.');
                     }
@@ -71,7 +72,8 @@
         $(document).ready(function () {
             $('#auth_form').submit(send_authentication);
 
-            socket.emit('check_cookie', $.cookie('auth'), function (valid) {
+            var cookie = localStorage['game-key'] || '';
+            socket.emit('check_cookie', cookie, function (valid) {
                     if (valid == false) {
                         $('#auth').show();
                     }
@@ -91,9 +93,7 @@
 
 <div id='auth'>
     <form id='auth_form' method='post'>
-        <label>Username</label><input id='username' type='text' name='username' />
-        <br>
-        <label>Password</label><input id='password' type='password' name='password' />
+        <label>Username:</label><input id='username' type='text' name='username' />
         <br>
         <input type='submit' value='Login' />
     </form>
