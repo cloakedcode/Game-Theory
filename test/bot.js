@@ -32,6 +32,13 @@ describe('Bot', function () {
         })
     })
 
+    describe('#set lobby', function () {
+        it('should have a set_lobby function', function () {
+            bot.should.have.property('set_lobby');
+            bot.set_lobby.should.be.instanceOf(Function);
+        })
+    })
+
     describe('#round ended', function () {
         it('should have a round_ended function', function () {
             bot.should.have.property('round_ended');
