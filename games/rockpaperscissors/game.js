@@ -1,14 +1,24 @@
 var _options = ["Rock", "Paper", "Scissors"];
+var _form = '<h3>Fist Selection</h3><form>';
+
+for (op in _options) {
+    _form += "<input type='radio' value='"+_options[op]+"' name='weapon' onclick='$(\"#form form\").submit()'>"+_options[op];
+}
+
+_form += "</form>";
 
 exports.play = function (players, callback, db) {
-    countdown(players, 3, callback);
     for (var i=0; i<players.length; i++) {
-        players[i].ask_for_choice({msg: "Choose your weapon!", choices: _options}, function (player, choice) {
-            if (_options.indexOf(choice) >= 0) {
-                player.weapon = choice;
+        players[i].game_form(_form, function (data, player, callback) {
+            console.log(data);
+            if (data.hasOwnProperty('weapon') && _options.indexOf(data.weapon) >= 0) {
+                player.weapon = data.weapon;
+            } else {
+                callback("alert(\"That's not a real move.\")");
             }
         });
     }
+    countdown(players, 3, callback);
 }
 
 function countdown(players, seconds, callback) {

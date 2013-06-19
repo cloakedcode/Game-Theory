@@ -20,7 +20,7 @@
     </style>
 
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
-    <script src="/jquery.cookie.js"></script>
+    <script src="/jquery.serialize.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io.connect('http://codepurple.goshen.edu:9000/game');
@@ -42,13 +42,14 @@
             $('#choices').html(html);
 
             $('.choice').click(choice_selected);
-        });
+        })
 
         socket.on('round_ended', function () {
             $('#msg').html('');
             $('#choices').html('');
             $('#choice').html('');
-        });
+            $('#form').html('');
+        })
 
         function choice_selected() {
             $('#choice').html("<p>" + $(this).val() + "</p>");
@@ -69,6 +70,19 @@
             return false;
         }
 
+        socket.on('game_form', function (form) {
+            $('#form').html(form);
+            $('#form form').submit(function () {
+                socket.emit('game_form', $(this).serializeObject(), function (res) {
+                    if (res) {
+                        eval(res);
+                    }
+                });
+
+                return false;
+            });
+        });
+
         $(document).ready(function () {
             $('#auth_form').submit(send_authentication);
 
@@ -77,7 +91,7 @@
                     if (valid == false) {
                         $('#auth').show();
                     }
-                });
+            });
         });
     </script>
 </head>
@@ -90,6 +104,8 @@
 <div id='msg'></div>
 <div id='choices'></div>
 <div id='choice'></div>
+
+<div id='form'></div>
 
 <div id='auth'>
     <form id='auth_form' method='post'>
