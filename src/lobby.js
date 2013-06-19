@@ -29,8 +29,7 @@ function Lobby(game) {
             self.games = new Array();
 
             GAME_START_TIME = now();
-            console.log(GAME_START_TIME);
-            self.timeout_id = setInterval(self._run_loop, 900);
+            self.timeout_id = setInterval(self._run_loop, 1000);
         }
     }
 
@@ -48,8 +47,8 @@ function Lobby(game) {
 
             if (skip == false) {
                 var game = Game({name: self.game.name});
-                self.games.push(game);
                 game.db = db;
+                self.games.push(game);
                 game.play(pair, self._game_ended);
             }
         }
@@ -88,9 +87,11 @@ function Lobby(game) {
             self.timeout_id = null;
         }
 
+        /*
         for (var i=0; i<self.games.length; i++) {
             self.games[i].end(self._game_ended);
         }
+        */
     }
 
     self.add_player = function (player) {

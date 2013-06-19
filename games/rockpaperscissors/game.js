@@ -1,16 +1,8 @@
 var _options = ["Rock", "Paper", "Scissors"];
-var _players = new Array;
-var _end_callback = null;
 
 exports.play = function (players, callback, db) {
-    _end_callback = callback;
-    _players = players;
-
-    _players[0].opponent = _players[1];
-    _players[1].opponent = _players[0];
-
+    countdown(players, 3, callback);
     for (var i=0; i<players.length; i++) {
-        countdown(players[i], 3);
         players[i].ask_for_choice({msg: "Choose your weapon!", choices: _options}, function (player, choice) {
             if (_options.indexOf(choice) >= 0) {
                 player.weapon = choice;
@@ -19,32 +11,34 @@ exports.play = function (players, callback, db) {
     }
 }
 
-function countdown(player, seconds) {
+function countdown(players, seconds, callback) {
     if (seconds >= 0) {
-        player.set_status("You have " + seconds + " seconds to choose...");
-        setTimeout(countdown, 1000, player, seconds -1);
+        players[0].set_status("You have " + seconds + " seconds to choose...");
+        players[1].set_status("You have " + seconds + " seconds to choose...");
+
+        setTimeout(countdown, 1000, players, seconds -1, callback);
     } else {
-        game_over();
+        game_over(players, callback);
     }
 }
 
-function game_over() {
+function game_over(players, callback) {
     var winner = null;
 
-    if (beats(_players[0].weapon, _players[1].weapon)) {
-        _players[0].set_status("You won!");
-        _players[1].set_status("You lost!");
-        winner = _players[0];
-    } else if (beats(_players[1].weapon, _players[0].weapon)){
-        _players[1].set_status("You won!");
-        _players[0].set_status("You lost!");
-        winner = _players[1];
+    if (beats(players[0].weapon, players[1].weapon)) {
+        players[0].set_status("You won!");
+        players[1].set_status("You lost!");
+        winner = players[0];
+    } else if (beats(players[1].weapon, players[0].weapon)){
+        players[0].set_status("You lost!");
+        players[1].set_status("You won!");
+        winner = players[1];
     } else {
-        _players[1].set_status("You tied!");
-        _players[0].set_status("You tied!");
+        players[0].set_status("You tied!");
+        players[1].set_status("You tied!");
     }
 
-    _end_callback(winner, [{player: _players[0], choice: _players[0].weapon}, {player: _players[1], choice: _players[1].weapon}]);
+    callback(winner, [{player: players[0], choice: players[0].weapon}, {player: players[1], choice: players[1].weapon}]);
 }
 
 function beats(first_weapon, second_weapon) {
