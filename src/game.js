@@ -10,41 +10,33 @@ function Game (options) {
     self._bots = null;
     self.dir_path = null;
 
-    if ((options instanceof Object) === false) {
-        throw "Game objects must be created with {name: ''} parameter.";
-    }
-
-    if (options === undefined) {
-        throw "Game objects must be created with an existing game name.";
-    }
-
     var callback = arguments[1] || function () {};
 
-    // @TODO: cache the games found and load game from that
-    var files = fs.readdirSync(GAME_DIR);
-    for (var i=0; i<files.length; i++) {
-        var path = GAME_DIR + '/' + files[i];
-
-        if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
-            var f = require(path + '/config.json');
-            if (options.name == f.name) {
-                self.dir_path = path;
-                self.num_per_round = f.num_per_round;
-                self.name = f.name;
-
-                self.launch_game = require(self.dir_path + '/game.js').play;
-
-                break;
-            }
+    self._load_game = function (options, callback) {
+        if ((options instanceof Object) === false) {
+            throw "Game objects must be created with {name: ''} parameter.";
         }
+
+        if (options === undefined) {
+            throw "Game objects must be created with an existing game name.";
+        }
+
+        var game = _game_named(options.name);
+        if (game)
+        {
+            self.dir_path = game.dir_path;
+            self.num_per_round = game.num_per_round;
+            self.name = game.name;
+
+            self.launch_game = game.launch_game;
+        } else {
+            throw "Game created with non-existent game name.";
+        }
+
+        callback(self);
     }
 
-    if (self.name == undefined) {
-        throw "Game created with non-existent game name.";
-    }
-
-
-    callback(self);
+    self._load_game(options, callback);
 
     self.play = function (pair, callback) {
         self.players = pair;
@@ -99,35 +91,49 @@ exports.Game = Game;
 // the callback takes one argument, an array of games found
 exports.available_games = function (callback) {
     // return an array of the file names in the games directory
-    fs.readdir(GAME_DIR, function (err, files) {
-        var games = new Array;
-
-        for (var i=0; i<files.length; i++) {
-            var path = GAME_DIR + '/' + files[i];
-            if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
-                var name = require(path + '/config.json').name;
-                games.push({name: name});
-            }
-        }
-
-        callback(games);
-    });
+    callback(_games());
 }
 
 exports.exists = function (name, callback) {
     // return an array of the file names in the games directory
-    fs.readdir(GAME_DIR, function (err, files) {
+    callback(_game_named(name) != null);
+}
+
+function _game_named(name) {
+    var games = _games();
+    for (var i=0; i<games.length; i++) {
+        if (name == games[i].name) {
+            return games[i];
+        }
+    }
+
+    return null;
+}
+
+var games;
+
+function _games() {
+    if (games == undefined) {
+        var files = fs.readdirSync(GAME_DIR);
+        games = new Array();
+
         for (var i=0; i<files.length; i++) {
             var path = GAME_DIR + '/' + files[i];
-            if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
-                var game_name = require(path + '/config.json').name;
 
-                if (name == game_name) {
-                    return callback(true);
-                }
+            if (fs.statSync(path).isDirectory() && fs.existsSync(path + '/config.json')) {
+                var f = require(path + '/config.json');
+                var g = {};
+
+                g.dir_path = path;
+                g.num_per_round = f.num_per_round;
+                g.name = f.name;
+
+                g.launch_game = require(g.dir_path + '/game.js').play;
+
+                games.push(g);
             }
         }
+    }
 
-        callback(false);
-    });
+    return games;
 }
