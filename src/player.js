@@ -5,23 +5,40 @@ function Player(socket) {
     self.lobby = null;
     self.is_playing = false;
     self.callback = null;
+    self._game_callback = null;
 
     self.hash = '';
     self.username = '';
 
     self.set_status = function (msg) {
-        self.socket.emit('status', msg);
+        if (self.socket)
+            self.socket.emit('status', msg);
     }
 
     self.round_ended = function () {
-        self.socket.emit('round_ended');
+        if (self.socket)
+            self.socket.emit('round_ended');
     }
 
     self.ask_for_choice = function (options, callback) {
-        self.callback = callback;
-        self.socket.on('choice', self._callback);
+        if (self.socket) {
+            self.callback = callback;
+            self.socket.on('choice', self._callback);
 
-        self.socket.emit('choice', options);
+            self.socket.emit('choice', options);
+        }
+    }
+
+    self.game_form = function (form, callback) {
+        if (self.socket) {
+            self._game_callback = callback;
+            self.socket.on('game_form', self._game_form_callback);
+            self.socket.emit('game_form', form);
+        }
+    }
+
+    self._game_form_callback = function (data, callback) {
+        self._game_callback(data, self, callback);
     }
 
     self._callback = function () {

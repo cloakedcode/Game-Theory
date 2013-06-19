@@ -15,11 +15,8 @@ Bot.set_status = function (msg) {
 Bot.round_ended = function () {
 }
 
-Bot.ask_for_choice = function (options, callback) {
-    var choice = options['choices'][1];
-    console.log("Bot choosing " + choice);
-
-    callback(this, choice);
+Bot.game_form = function (form, callback) {
+    callback({weapon: 'Paper'}, this, function () {});
 }
 
 exports.Bot = Bot;
