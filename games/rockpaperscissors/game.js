@@ -11,12 +11,11 @@ exports.play = function (players, callback, db) {
 
     for (var i=0; i<players.length; i++) {
         countdown(players[i], 3);
-        players[i].ask_for_choice({msg: "Choose your weapon!", choices: _options}
-                , function (player, choice) {
-                    if (_options.indexOf(choice) >= 0) {
-                        player.weapon = choice;
-                    }
-                });
+        players[i].ask_for_choice({msg: "Choose your weapon!", choices: _options}, function (player, choice) {
+            if (_options.indexOf(choice) >= 0) {
+                player.weapon = choice;
+            }
+        });
     }
 }
 
@@ -30,21 +29,22 @@ function countdown(player, seconds) {
 }
 
 function game_over() {
-    winner = null;
-    loser = null;
+    var winner = null;
 
     if (beats(_players[0].weapon, _players[1].weapon)) {
         _players[0].set_status("You won!");
         _players[1].set_status("You lost!");
+        winner = _players[0];
     } else if (beats(_players[1].weapon, _players[0].weapon)){
         _players[1].set_status("You won!");
         _players[0].set_status("You lost!");
+        winner = _players[1];
     } else {
         _players[1].set_status("You tied!");
         _players[0].set_status("You tied!");
     }
 
-    _end_callback();
+    _end_callback(winner, [{player: _players[0], choice: _players[0].weapon}, {player: _players[1], choice: _players[1].weapon}]);
 }
 
 function beats(first_weapon, second_weapon) {

@@ -18,6 +18,10 @@ exports.db = db;
 
 // expects choices to be [{player: player, choice: str}]
 exports.save_round = function (victor, game, choices, callback) {
+    if (game == null || choices == null) {
+        throw "#db save_round cannot be called with null game or choices";
+    }
+
     db.serialize(function () {
         game_id(game, function (game_id) {
             player_id(victor, function (p_id) {
@@ -41,7 +45,9 @@ exports.save_round = function (victor, game, choices, callback) {
                                 })
                             })
                         } else {
-                            callback();
+                            if (callback) {
+                                return callback();
+                            }
                         }
                     }
 
@@ -54,6 +60,10 @@ exports.save_round = function (victor, game, choices, callback) {
 
 function player_id(player, callback) {
     // @TODO: validate player has required fields
+    if (player == undefined || player.hasOwnProperty('username') == false) {
+        return player_id({username: 'Tied'}, callback);
+    }
+
     db.get('SELECT id FROM players WHERE username = ?', player.username, function (err, row) {
         var player_id = row;
 
@@ -66,21 +76,18 @@ function player_id(player, callback) {
                 callback(this.lastID);
             });
         } else {
-            callback(player_id);
+            callback(player_id.id);
         }
     })
 }
 
 function game_id(game, callback) {
     game_type_id(game, function (game_type_id) {
-        // @FIXME: define now as being the current date
-        var date = new Date();
-        var now = date.getMonth() + 1 + '/' + date.getDate() + '/' + date.getFullYear();
-        db.get('SELECT id FROM games WHERE game_type = ? AND date_played = ?', game_type_id, now, function (err, row) {
+        db.get('SELECT id FROM games WHERE game_type = ? AND date_played = ?', game_type_id, GAME_START_TIME, function (err, row) {
             var game_id = row;
 
             if (game_id == undefined) {
-                db.run('INSERT INTO games (game_type, date_played) VALUES (?, ?)', game_type_id, now, function (err) {
+                db.run('INSERT INTO games (game_type, date_played) VALUES (?, ?)', game_type_id, GAME_START_TIME, function (err) {
                     if (err) {
                         throw err;
                     }
@@ -88,7 +95,7 @@ function game_id(game, callback) {
                     callback(this.lastID);
                 });
             } else {
-                callback(game_id);
+                callback(game_id.id);
             }
         })
     })
@@ -108,7 +115,7 @@ function game_type_id(game, callback) {
                 callback(this.lastID);
             });
         } else {
-            callback(type_id);
+            callback(type_id.id);
         }
     })
 }

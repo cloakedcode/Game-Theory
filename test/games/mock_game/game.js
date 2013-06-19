@@ -1,3 +1,3 @@
 exports.play = function (pair, callback) {
-    callback();
+    callback(null, [{player:"none", choice: "none"}]);
 }

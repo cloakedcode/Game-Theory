@@ -45,4 +45,11 @@ describe('Bot', function () {
             bot.ask_for_choice.should.be.instanceOf(Function);
         })
     })
+
+    describe('#name', function () {
+        it('should have a string property username', function () {
+            bot.should.have.property('username');
+            bot.username.should.be.a('string');
+        })
+    })
 })
