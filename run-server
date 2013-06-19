@@ -1,6 +1,7 @@
 #!/bin/sh
 
 export NODE_PATH=`pwd`
+export NODE_ENV=prod
 
 while [[ true ]]
 do

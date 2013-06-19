@@ -1,5 +1,7 @@
 var Bot = {};
 
+Bot.username = 'test-bot';
+
 Bot.is_connected = function () {
     return true;
 }

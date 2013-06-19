@@ -1,5 +1,7 @@
 var Game = require(__dirname + '/game.js')
-    , db = require(__dirname + '/db.js')
+    , db = require(__dirname + '/db.js').db
+
+GAME_START_TIME = '';
 
 function Lobby(game) {
     var self = this;
@@ -26,6 +28,8 @@ function Lobby(game) {
 
             self.games = new Array();
 
+            GAME_START_TIME = now();
+            console.log(GAME_START_TIME);
             self.timeout_id = setInterval(self._run_loop, 900);
         }
     }
@@ -45,7 +49,7 @@ function Lobby(game) {
             if (skip == false) {
                 var game = Game({name: self.game.name});
                 self.games.push(game);
-                game.db = db();
+                game.db = db;
                 game.play(pair, self._game_ended);
             }
         }
@@ -125,6 +129,15 @@ function Lobby(game) {
             self.add_player(bots[i]);
         }
     }
+}
+
+function now() {
+    function pad(num) {
+        return (num >= 0 && num < 10) ? '0' + num : num + '';
+    }
+
+    var n = new Date();
+    return pad(n.getDate())+'/'+pad(n.getMonth()+1)+'/'+pad(n.getFullYear())+' '+pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());
 }
 
 module.exports = exports = function (game) { return new Lobby(game) };
