@@ -32,6 +32,13 @@ describe('Bot', function () {
         })
     })
 
+    describe('#log message', function () {
+        it('should have a log_message function', function () {
+            bot.should.have.property('log_message');
+            bot.log_message.should.be.instanceOf(Function);
+        })
+    })
+
     describe('#set lobby', function () {
         it('should have a set_lobby function', function () {
             bot.should.have.property('set_lobby');
@@ -46,14 +53,7 @@ describe('Bot', function () {
         })
     })
 
-    describe('#ask for choice', function () {
-        it('should have a ask_for_choice function', function () {
-            bot.should.have.property('ask_for_choice');
-            bot.ask_for_choice.should.be.instanceOf(Function);
-        })
-    })
-
-    describe('#name', function () {
+    describe('#username', function () {
         it('should have a string property username', function () {
             bot.should.have.property('username');
             bot.username.should.be.a('string');

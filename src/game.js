@@ -44,10 +44,9 @@ function Game (options) {
 
         for (var i=0; i<self.players.length; i++) {
             self.players[i].is_playing = true;
-            self.players[i].set_status('Get ready...');
         }
 
-        setTimeout(self.launch_game, 2000, self.players, self.game_ended, database.db);
+        self.launch_game(self.players, self.game_ended, database.db);
     }
 
     self.game_ended = function (winner, choices) {
@@ -62,6 +61,15 @@ function Game (options) {
         
         if (self.callback != undefined) {
             self.callback(self, self.players);
+        }
+    }
+
+    self.end = function () {
+        if (self.players) {
+            for (var i=0; i<self.players.length; i++) {
+                self.players[i].is_playing = false;
+                self.players[i].set_status('Game was stopped.');
+            }
         }
     }
 

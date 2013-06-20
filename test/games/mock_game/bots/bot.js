@@ -10,10 +10,13 @@ Bot.set_status = function (msg) {
     console.log('Bot: ' + msg);
 }
 
-Bot.ask_for_choice = function (options) {
+Bot.log_message = function () {
 }
 
 Bot.round_ended = function () {
+}
+
+Bot.set_lobby = function () {
 }
 
 exports.Bot = Bot;

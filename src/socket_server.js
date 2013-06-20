@@ -58,6 +58,22 @@ function GameServer() {
         }
     }
 
+    self.delete_lobby = function (game_name) {
+        for (var i=0; i<self.lobbies.length; i++) {
+            var lobby = self.lobbies[i];
+            if (lobby.game.name == game_name) {
+                lobby.end_game();
+                if (lobby.players) {
+                    for (var j=0; j<lobby.players.length; j++) {
+                        lobby.remove_player(lobby.players[j]);
+                    }
+                }
+
+                self.lobbies.splice(i, 1);
+            }
+        }
+    }
+
     self.player_joined = function (socket) {
         logger.info('player joined');
 
@@ -67,6 +83,7 @@ function GameServer() {
     }
 
     self.authenticate_user = function (data, callback) {
+        data.username = data.username.toLowerCase();
         var socket = this;
         var hash = crypto.createHash('md5').update(data.username + salt).digest("hex");
 

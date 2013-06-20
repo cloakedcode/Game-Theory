@@ -8,15 +8,12 @@ Bot.is_connected = function () {
     return true;
 }
 
-Bot.set_status = function (msg) {
-    console.log('Bot: ' + msg);
-}
-
-Bot.round_ended = function () {
+Bot.log_message = function (msg) {
+    console.log(this.username + ': ' + msg);
 }
 
 Bot.game_form = function (form, callback) {
-    callback({weapon: 'Paper'}, this, function () {});
+    callback({weapon: 'Paper'}, self, function () {});
 }
 
 exports.Bot = Bot;

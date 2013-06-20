@@ -41,6 +41,10 @@ app.post('/admin.html', function (req, res) {
     else if (req.body.Stop != undefined) {
         socket_server.stop_lobby(req.body.game_id);
     }
+    else if (req.body.Delete != undefined) {
+        console.log(req.body.game_id + " being deleted.");
+        socket_server.delete_lobby(req.body.game_id);
+    }
 
     console.log(socket_server.lobbies.length);
     res.redirect('/admin.html');

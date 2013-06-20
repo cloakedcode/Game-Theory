@@ -15,24 +15,19 @@ function Player(socket) {
             self.socket.emit('status', msg);
     }
 
+    self.log_message = function (msg) {
+        if (self.socket)
+            self.socket.emit('log', msg);
+    }
+
     self.round_ended = function () {
         if (self.socket)
             self.socket.emit('round_ended');
     }
 
-    self.ask_for_choice = function (options, callback) {
-        if (self.socket) {
-            self.callback = callback;
-            self.socket.on('choice', self._callback);
-
-            self.socket.emit('choice', options);
-        }
-    }
-
     self.game_form = function (form, callback) {
         if (self.socket) {
             self._game_callback = callback;
-            self.socket.on('game_form', self._game_form_callback);
             self.socket.emit('game_form', form);
         }
     }
@@ -51,6 +46,10 @@ function Player(socket) {
 
     self.is_connected = function () {
         return self.socket != undefined && self.socket != null;
+    }
+
+    if (socket) {
+        self.socket.on('game_form', self._game_form_callback);
     }
 }
 

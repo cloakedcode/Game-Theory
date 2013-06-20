@@ -19,6 +19,7 @@
 <li>{{game.name}} <form method='post' style='display: inline'>
     <input type='hidden' name='game_id' value='{{game.name}}'>
     {{#button}}{{is_running}}{{/button}}
+    <input type='submit' name='Delete' value='Delete'>
 </form></li>
 {{/lobbies}}
 {{^lobbies}}

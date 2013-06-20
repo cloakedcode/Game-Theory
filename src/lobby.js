@@ -87,11 +87,13 @@ function Lobby(game) {
             self.timeout_id = null;
         }
 
-        /*
-        for (var i=0; i<self.games.length; i++) {
-            self.games[i].end(self._game_ended);
+        if (self.games) {
+            for (var i=0; i<self.games.length; i++) {
+                self.games[i].end();
+            }
         }
-        */
+
+        self.is_running = false;
     }
 
     self.add_player = function (player) {
