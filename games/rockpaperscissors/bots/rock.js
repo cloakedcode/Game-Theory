@@ -2,7 +2,7 @@ Player = require(__dirname + '/../../../src/player.js');
 
 Bot = Player();
 
-Bot.username = "Scissor bot";
+Bot.username = "Rock bot";
 
 Bot.is_connected = function () {
     return true;
@@ -16,7 +16,7 @@ Bot.round_ended = function () {
 }
 
 Bot.game_form = function (form, callback) {
-    callback({weapon: 'Scissors'}, this, function () {});
+    callback({weapon: 'Rock'}, self, function () {});
 }
 
 exports.Bot = Bot;

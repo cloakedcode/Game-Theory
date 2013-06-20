@@ -8,17 +8,19 @@ for (op in _options) {
 _form += "</form>";
 
 exports.play = function (players, callback, db) {
+    console.log(players[0].username + " and " + players[1].username + " are playing.");
     for (var i=0; i<players.length; i++) {
+        players[i].send_msg = function (msg) { this.set_status(msg); this.log_message(msg); };
         players[i].game_form(_form, function (data, player, callback) {
-            console.log(data);
             if (data.hasOwnProperty('weapon') && _options.indexOf(data.weapon) >= 0) {
                 player.weapon = data.weapon;
+                player.log_message("You chose " + data.weapon);
             } else {
                 callback("alert(\"That's not a real move.\")");
             }
         });
     }
-    countdown(players, 3, callback);
+    countdown(players, 5, callback);
 }
 
 function countdown(players, seconds, callback) {
@@ -36,16 +38,16 @@ function game_over(players, callback) {
     var winner = null;
 
     if (beats(players[0].weapon, players[1].weapon)) {
-        players[0].set_status("You won!");
-        players[1].set_status("You lost!");
+        players[0].send_msg("You won!");
+        players[1].send_msg("You lost!");
         winner = players[0];
     } else if (beats(players[1].weapon, players[0].weapon)){
-        players[0].set_status("You lost!");
-        players[1].set_status("You won!");
+        players[0].send_msg("You lost!");
+        players[1].send_msg("You won!");
         winner = players[1];
     } else {
-        players[0].set_status("You tied!");
-        players[1].set_status("You tied!");
+        players[0].send_msg("You tied!");
+        players[1].send_msg("You tied!");
     }
 
     callback(winner, [{player: players[0], choice: players[0].weapon}, {player: players[1], choice: players[1].weapon}]);

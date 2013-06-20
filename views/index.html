@@ -17,6 +17,16 @@
         #auth {
            display: none;
         }
+
+        #log {
+            display: none;
+        }
+
+        #log textarea {
+            font-size: 12pt;
+            width: 500px;
+            height: 350px;
+        }
     </style>
 
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
@@ -27,22 +37,11 @@
 
         socket.on('status', function (data) {
             $('#status').html("<p>" + data + "</p>");
-            console.log(data);
         });
 
-        socket.on('choice', function (data) {
-            $('#msg').html("<p>" + data.msg + "</p>");
-
-            var html = "";
-            for (var i=0; i<data.choices.length; i++) {
-                html += "<input type='submit' class='choice' value='" +
-                data.choices[i] + "' name='" + data.choices[i] + "' >";
-            }
-
-            $('#choices').html(html);
-
-            $('.choice').click(choice_selected);
-        })
+        socket.on('log', function (data) {
+            log_message(data);
+        });
 
         socket.on('round_ended', function () {
             $('#msg').html('');
@@ -51,9 +50,8 @@
             $('#form').html('');
         })
 
-        function choice_selected() {
-            $('#choice').html("<p>" + $(this).val() + "</p>");
-            socket.emit('choice', $(this).val());
+        function log_message(data) {
+            $('#log textarea').prepend("- " + data + "\n");
         }
 
         function send_authentication() {
@@ -61,6 +59,7 @@
                 function (valid, cookie) {
                     if (valid == true) {
                         $('#auth').hide();
+                        $('#log').show();
                         localStorage['game-key'] = cookie;
                     } else {
                         alert('Incorrect username or password. Please try again.');
@@ -90,6 +89,8 @@
             socket.emit('check_cookie', cookie, function (valid) {
                     if (valid == false) {
                         $('#auth').show();
+                    } else {
+                        $('#log').show();
                     }
             });
         });
@@ -113,6 +114,11 @@
         <br>
         <input type='submit' value='Login' />
     </form>
+</div>
+
+<div id='log'>
+    <h3>Log</h3>
+    <textarea></textarea>
 </div>
 
 </body>
