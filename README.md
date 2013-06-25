@@ -10,8 +10,8 @@ The players join the lobby by visiting the URL and entering a username. Once the
 
 ## Installation
 
-    git clone https://github.com/cloakedcode/gametheory.git
-    cd gametheory
+    git clone https://github.com/cloakedcode/Game-Theory.git
+    cd Game-Theory
     node server.js
 
 ## Testing
