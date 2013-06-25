@@ -18,6 +18,7 @@ The players join the lobby by visiting the URL and entering a username. Once the
 
     make test
 or
+
     npm test
 
 ## The ingredients
