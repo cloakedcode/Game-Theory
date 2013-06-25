@@ -3,134 +3,146 @@ var Game = require(__dirname + '/game.js')
 
 GAME_START_TIME = '';
 
-function Lobby(game) {
-    var self = this;
+module.exports = exports = function (game) { return new Lobby(game) };
 
-    self.is_running = false;
-    self.players = new Array();
-    self.pairs = null;
-    self.games = null;
-    self.timeout_id = null;
+exports.Lobby = Lobby;
+
+function Lobby(game) {
+    this.is_running = false;
+    this.players = new Array();
+    this.pairs = null;
+    this.games = null;
+    this.timeout_id = null;
 
     if (game instanceof Game.Game == false) {
         throw "'game' must be of the type Game";
     }
 
-    self.game = game;
+    this.game = game;
+}
 
-    self.run_game = function () {
-        self.is_running = true;
+Lobby.prototype.run_game = function () {
+    this.is_running = true;
 
-        self._load_bots();
+    _load_bots(this);
 
-        if (self.players.length > 0) {
-            self.pair_players();
+    if (this.players.length > 0) {
+        this.pair_players();
 
-            self.games = new Array();
+        this.games = new Array();
 
-            GAME_START_TIME = now();
-            self.timeout_id = setInterval(self._run_loop, 1000);
+        for (var i = 0; i < this.players.length; i++) {
+            this.players[i].set_status('Get ready...');
         }
-    }
 
-    self._run_loop = function () {
-        // for each pair of players
-        for (var i = 0; i < self.pairs.length; i++) {
-            var skip = false;
-            var pair = self.pairs[i];
+        GAME_START_TIME = now();
+        this.timeout_id = setInterval(this._run_loop.bind(this), 1000);
+    }
+}
+
+Lobby.prototype._run_loop = function () {
+    // for each pair of players
+    for (var i = 0; i < this.pairs.length; i++) {
+        var skip = false;
+        var pair = this.pairs[i];
+        for (var j = 0; j < pair.length; j++) {
+            if (pair[j].is_connected() == false || pair[j].is_playing) {
+                skip = true;
+                break;
+            }
+        }
+
+        if (skip) {
             for (var j = 0; j < pair.length; j++) {
-                if (pair[j].is_connected() == false || pair[j].is_playing) {
-                    skip = true;
-                    break;
+                if (pair[j].is_connected() && pair[j].is_playing == false ) {
+                    pair[j].set_status('Wait for available opponents..');
                 }
             }
-
-            if (skip == false) {
-                var game = Game({name: self.game.name});
-                game.db = db;
-                self.games.push(game);
-                game.play(pair, self._game_ended);
-            }
-        }
-
-        if (self.pairs.length <= 0) {
-            clearInterval(self.timeout_id);
-            self.timeout_id = null;
-            self.is_running = false;
+        } else {
+            var game = Game({name: this.game.name});
+            game.db = db;
+            this.games.push(game);
+            game.play(pair, this._game_ended.bind(this));
         }
     }
 
-    /**
-     * this is an internal function that should never be called directly.
-     */
-    self._game_ended = function (game, players) {
-        // remove game from list of games now that it has ended
-        var i = self.games.indexOf(game);
-        if (i >= 0) {
-            self.games.splice(i, 1);
-        }
+    if (this.pairs.length <= 0) {
+        clearInterval(this.timeout_id);
+        this.timeout_id = null;
+        this.is_running = false;
+    }
+}
 
-        // remove player pairing
-        i = self.pairs.indexOf(players);
-        if (i >= 0) {
-            self.pairs.splice(i, 1);
-        }
-        
-        if (self.games.length <= 0) {
-            self.is_running = false;
+/**
+ * this is an internal function that should never be called directly.
+ */
+Lobby.prototype._game_ended = function (game, players) {
+    // remove game from list of games now that it has ended
+    var i = this.games.indexOf(game);
+    if (i >= 0) {
+        this.games.splice(i, 1);
+    }
+
+    // remove player pairing
+    i = this.pairs.indexOf(players);
+    if (i >= 0) {
+        this.pairs.splice(i, 1);
+    }
+
+    if (this.games.length <= 0) {
+        this.is_running = false;
+    }
+}
+
+Lobby.prototype.end_game = function () {
+    if (this.timeout_id != null) {
+        clearInterval(this.timeout_id);
+        this.timeout_id = null;
+    }
+
+    if (this.games) {
+        for (var i=0; i<this.games.length; i++) {
+            this.games[i].end();
         }
     }
 
-    self.end_game = function () {
-        if (self.timeout_id != null) {
-            clearInterval(self.timeout_id);
-            self.timeout_id = null;
-        }
+    this.is_running = false;
+}
 
-        if (self.games) {
-            for (var i=0; i<self.games.length; i++) {
-                self.games[i].end();
-            }
-        }
-
-        self.is_running = false;
+Lobby.prototype.add_player = function (player) {
+    if (this.players.indexOf(player) < 0) {
+        this.players.push(player);
+        player.set_lobby(this);
+        player.set_status("You have joined the game lobby.");
     }
+}
 
-    self.add_player = function (player) {
-        if (self.players.indexOf(player) < 0) {
-            self.players.push(player);
-            player.set_lobby(self);
-            player.set_status("You have joined the game lobby.");
-        }
+Lobby.prototype.remove_player = function (player) {
+    var i = this.players.indexOf(player);
+    if (i >= 0) {
+        this.players[i].set_lobby(null);
+        this.players.splice(i, 1);
     }
+}
 
-    self.remove_player = function (player) {
-        var i = self.players.indexOf(player);
-        if (i >= 0) {
-            self.players[i].set_lobby(null);
-            self.players.splice(i, 1);
-        }
-    }
+// pairs players up to each other for playing the game
+Lobby.prototype.pair_players = function () {
+    this.pairs = new Array();
 
-    // pairs players up to each other for playing the game
-    self.pair_players = function () {
-        self.pairs = new Array();
+    for (var i = 0; i < this.players.length; i++) {
+        for (var j = i+1; j < this.players.length; j += this.game.num_per_round - 1) {
+            var new_pair = this.players.slice(j, j + this.game.num_per_round - 1);
+            new_pair.push(this.players[i]);
 
-        for (var i = 0; i < self.players.length; i++) {
-            for (var j = i+1; j < self.players.length; j += self.game.num_per_round - 1) {
-                var new_pair = self.players.slice(j, j + self.game.num_per_round - 1);
-                new_pair.push(self.players[i]);
-
-                self.pairs.push(new_pair);
-            }
+            this.pairs.push(new_pair);
         }
     }
+}
 
-    self._load_bots = function () {
-        var bots = self.game.bots();
-        for (var i=0; i<bots.length; i++) {
-            self.add_player(bots[i]);
-        }
+_load_bots = function (lobby) {
+    var bots = lobby.game.bots();
+    for (var i=0; i<bots.length; i++) {
+        lobby.add_player(bots[i]);
     }
 }
 
@@ -142,7 +154,3 @@ function now() {
     var n = new Date();
     return pad(n.getDate())+'/'+pad(n.getMonth()+1)+'/'+pad(n.getFullYear())+' '+pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());
 }
-
-module.exports = exports = function (game) { return new Lobby(game) };
-
-exports.Lobby = Lobby;

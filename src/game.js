@@ -3,98 +3,92 @@ var fs = require('fs')
 
 var GAME_DIR = (process.env.NODE_ENV == 'test') ? __dirname + '/../test/games' : __dirname + '/../games'; 
 
-function Game (options) {
-    var self = this;
-
-    self.players = null;
-    self._bots = null;
-    self.dir_path = null;
-
-    var callback = arguments[1] || function () {};
-
-    self._load_game = function (options, callback) {
-        if ((options instanceof Object) === false) {
-            throw "Game objects must be created with {name: ''} parameter.";
-        }
-
-        if (options === undefined) {
-            throw "Game objects must be created with an existing game name.";
-        }
-
-        var game = _game_named(options.name);
-        if (game)
-        {
-            self.dir_path = game.dir_path;
-            self.num_per_round = game.num_per_round;
-            self.name = game.name;
-
-            self.launch_game = game.launch_game;
-        } else {
-            throw "Game created with non-existent game name.";
-        }
-
-        callback(self);
-    }
-
-    self._load_game(options, callback);
-
-    self.play = function (pair, callback) {
-        self.players = pair;
-        self.callback = callback;
-
-        for (var i=0; i<self.players.length; i++) {
-            self.players[i].is_playing = true;
-        }
-
-        self.launch_game(self.players, self.game_ended, database.db);
-    }
-
-    self.game_ended = function (winner, choices) {
-        if (choices) {
-            database.save_round(winner, self, choices);
-        }
-
-        for (var i=0; i<self.players.length; i++) {
-            self.players[i].is_playing = false;
-            self.players[i].round_ended();
-        }
-        
-        if (self.callback != undefined) {
-            self.callback(self, self.players);
-        }
-    }
-
-    self.end = function () {
-        if (self.players) {
-            for (var i=0; i<self.players.length; i++) {
-                self.players[i].is_playing = false;
-                self.players[i].set_status('Game was stopped.');
-            }
-        }
-    }
-
-    self.bots = function () {
-        if (self._bots == null) {
-            self._bots = new Array();
-
-            var dir = self.dir_path + '/bots';
-            if (fs.existsSync(dir)) {
-                var files = fs.readdirSync(dir);
-                for (var i=0; i<files.length; i++) {
-                    if (files[i][0] != '.') {
-                        self._bots.push(require(dir + '/' + files[i]).Bot);
-                    }
-                }
-            }
-        }
-
-        return self._bots;
-    }
-}
-
 module.exports = exports = function (name) { return new Game(name, arguments[1]) };
 
 exports.Game = Game;
+
+function Game (options) {
+    this.players = new Array();
+    this._bots = null;
+    this.dir_path = null;
+
+    var callback = arguments[1] || function () {};
+
+    if ((options instanceof Object) === false) {
+        throw "Game objects must be created with {name: ''} parameter.";
+    }
+
+    if (options === undefined) {
+        throw "Game objects must be created with an existing game name.";
+    }
+
+    var game = _game_named(options.name);
+    if (game)
+    {
+        this.dir_path = game.dir_path;
+        this.num_per_round = game.num_per_round;
+        this.name = game.name;
+
+        this.launch_game = game.launch_game;
+    } else {
+        throw "Game created with non-existent game name.";
+    }
+
+    return callback(this);
+}
+
+Game.prototype.play = function (pair, callback) {
+    this.players = pair;
+    this.callback = callback;
+
+    for (var i=0; i<this.players.length; i++) {
+        this.players[i].is_playing = true;
+    }
+
+    this.launch_game(this.players, this.game_ended.bind(this), database.db);
+}
+
+Game.prototype.game_ended = function (winner, choices) {
+    if (choices) {
+        database.save_round(winner, this, choices);
+    }
+
+    for (var i=0; i<this.players.length; i++) {
+        this.players[i].is_playing = false;
+        this.players[i].round_ended();
+    }
+
+    if (this.callback != undefined) {
+        this.callback(this, this.players);
+    }
+}
+
+Game.prototype.end = function () {
+    if (this.players) {
+        for (var i=0; i<this.players.length; i++) {
+            this.players[i].is_playing = false;
+            this.players[i].set_status('Game was stopped.');
+        }
+    }
+}
+
+Game.prototype.bots = function () {
+    if (this._bots == null) {
+        this._bots = new Array();
+
+        var dir = this.dir_path + '/bots';
+        if (fs.existsSync(dir)) {
+            var files = fs.readdirSync(dir);
+            for (var i=0; i<files.length; i++) {
+                if (files[i][0] != '.') {
+                    this._bots.push(require(dir + '/' + files[i]).Bot);
+                }
+            }
+        }
+    }
+
+    return this._bots;
+}
 
 // the callback takes one argument, an array of games found
 exports.available_games = function (callback) {

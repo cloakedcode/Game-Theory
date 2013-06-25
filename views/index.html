@@ -55,8 +55,7 @@
         }
 
         function send_authentication() {
-            socket.emit('authenticate', {username: $('#username').val()},
-                function (valid, cookie) {
+            socket.emit('authenticate', {username: $('#username').val()}, function (valid, cookie) {
                     if (valid == true) {
                         $('#auth').hide();
                         $('#log').show();
@@ -118,7 +117,7 @@
 
 <div id='log'>
     <h3>Log</h3>
-    <textarea></textarea>
+    <textarea readonly></textarea>
 </div>
 
 </body>

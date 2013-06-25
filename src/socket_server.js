@@ -2,15 +2,9 @@ var Game = require('src/game.js')
     , Lobby = require('src/lobby.js')
     , Player = require('src/player.js')
     , crypto = require('crypto')
-    , ldap = require('ldapjs')
     , Log = require('src/logger.js')
 
 var salt = 'long_salty string that NOONE will ever guess';
-var ldapclient = ldap.createClient({
-    url: 'ldaps://gc.goshen.edu:636',
-    bindDN: 'dc="gc",dc="goshen",dc="edu"',
-    maxConnections: 1
-});
 var logger = new Log;
 
 exports.listen = function (app) {
@@ -19,73 +13,14 @@ exports.listen = function (app) {
 
 function GameServer() {
     // the array of players that are connected
+    this.lobbies = new Array();
+    this.players = new Array();
+
     var self = this;
-    self.lobbies = new Array();
-    self.players = new Array();
-
-    self.listen = function (app) {
-        self.io = require('socket.io').listen(app)
-
-        self.io.set('log level', 2);
-        // main socket handling functions
-        self.io.of('/game').on('connection', self.player_joined);
-        return self;
-    }
-
-    self.create_lobby = function (game_name) {
-        logger.info('created lobby with game: ' + game_name);
-
-        game = Game({name: game_name});
-        lobby = Lobby(game);
-
-        self.lobbies.push(lobby);
-        self.put_players_in_lobby(lobby);
-    }
-
-    self.start_lobby = function (game_name) {
-        for (var i=0; i<self.lobbies.length; i++) {
-            if (self.lobbies[i].game.name == game_name && self.lobbies[i].is_running == false) {
-                return self.lobbies[i].run_game();
-            }
-        }
-    }
-
-    self.stop_lobby = function (game_name) {
-        for (var i=0; i<self.lobbies.length; i++) {
-            if (self.lobbies[i].game.name == game_name && self.lobbies[i].is_running) {
-                return self.lobbies[i].end_game();
-            }
-        }
-    }
-
-    self.delete_lobby = function (game_name) {
-        for (var i=0; i<self.lobbies.length; i++) {
-            var lobby = self.lobbies[i];
-            if (lobby.game.name == game_name) {
-                lobby.end_game();
-                if (lobby.players) {
-                    for (var j=0; j<lobby.players.length; j++) {
-                        lobby.remove_player(lobby.players[j]);
-                    }
-                }
-
-                self.lobbies.splice(i, 1);
-            }
-        }
-    }
-
-    self.player_joined = function (socket) {
-        logger.info('player joined');
-
-        socket.on('disconnect', self.player_disconnected);
-        socket.on('authenticate', self.authenticate_user);
-        socket.on('check_cookie', self.check_cookie);
-    }
-
-    self.authenticate_user = function (data, callback) {
+    this.authenticate_user = function (data, callback) {
         data.username = data.username.toLowerCase();
-        var socket = this;
         var hash = crypto.createHash('md5').update(data.username + salt).digest("hex");
+        var socket = this;
 
         logger.info('authenticating...');
         socket.emit('status', 'Authenticated');
@@ -108,9 +43,11 @@ function GameServer() {
         return callback(true, hash);
     }
 
-    self.check_cookie = function (hash, callback) {
+    this.check_cookie = function (hash, callback) {
         var socket = this;
         var found = false;
+        logger.debug('Hash: ' + hash);
+        logger.debug('Socket id: ' + socket.id);
         for (var i=0; i<self.players.length; i++) {
             var noob = self.players[i];
             if (noob.hash == hash) {
@@ -131,16 +68,16 @@ function GameServer() {
 
         }
 
-        callback(found);
+        return callback(found);
     }
 
-    self.player_disconnected = function (socket) {
+    this.player_disconnected = function (socket) {
         // if this socket is in the player array, remove it
-        for (i in self.players) {
-            if (self.players[i].socket == socket) {
-                var noob = self.players[i];
+        for (i in this.players) {
+            if (this.players[i].socket == socket) {
+                var noob = this.players[i];
 
-                self.players.splice(i, 1);
+                this.players.splice(i, 1);
                 noob.lobby.remove_player(noob);
                 noob.set_status('You disconnected. Reload the page.');
 
@@ -153,11 +90,74 @@ function GameServer() {
         }
     }
 
-    self.put_players_in_lobby = function (lobby) {
-        for (i in self.players) {
-            if (self.players[i].lobby == null) {
-                lobby.add_player(self.players[i]);
-            }
+}
+
+GameServer.prototype.listen = function (app) {
+    this.io = require('socket.io').listen(app);
+
+    this.io.set('log level', 2);
+    // main socket handling functions
+    this.io.of('/game').on('connection', this.player_joined.bind(this));
+    return this;
+}
+
+GameServer.prototype.create_lobby = function (game_name) {
+    logger.info('created lobby with game: ' + game_name);
+
+    game = Game({name: game_name});
+    lobby = Lobby(game);
+
+    this.lobbies.push(lobby);
+    this.put_players_in_lobby(lobby);
+}
+
+GameServer.prototype.start_lobby = function (game_name) {
+    for (var i=0; i<this.lobbies.length; i++) {
+        if (this.lobbies[i].game.name == game_name && this.lobbies[i].is_running == false) {
+            return this.lobbies[i].run_game();
         }
     }
-};
+}
+
+GameServer.prototype.stop_lobby = function (game_name) {
+    for (var i=0; i<this.lobbies.length; i++) {
+        if (this.lobbies[i].game.name == game_name && this.lobbies[i].is_running) {
+            return this.lobbies[i].end_game();
+        }
+    }
+}
+
+GameServer.prototype.delete_lobby = function (game_name) {
+    for (var i=0; i<this.lobbies.length; i++) {
+        var lobby = this.lobbies[i];
+
+        // if it's the lobby we're looking for
+        if (lobby.game.name == game_name) {
+            lobby.end_game();
+            // if there are players, remove them
+            if (lobby.players) {
+                for (var j=0; j<lobby.players.length; j++) {
+                    lobby.remove_player(lobby.players[j]);
+                }
+            }
+
+            return this.lobbies.splice(i, 1);
+        }
+    }
+}
+
+GameServer.prototype.player_joined = function (socket) {
+    logger.debug('player joined');
+
+    socket.on('disconnect', this.player_disconnected);
+    socket.on('authenticate', this.authenticate_user);
+    socket.on('check_cookie', this.check_cookie);
+}
+
+GameServer.prototype.put_players_in_lobby = function (lobby) {
+    for (i in this.players) {
+        if (this.players[i].lobby == null) {
+            lobby.add_player(this.players[i]);
+        }
+    }
+}
