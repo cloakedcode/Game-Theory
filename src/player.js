@@ -1,56 +1,56 @@
+module.exports = exports = function (socket) { return new Player(socket) }
+exports.Player = Player;
+
 // each person connected is represented by a Player object
 function Player(socket) {
-    var self = this;
-    self.socket = socket;
-    self.lobby = null;
-    self.is_playing = false;
-    self.callback = null;
-    self._game_callback = null;
+    this.socket = socket;
+    this.lobby = null;
+    this.is_playing = false;
+    this.callback = null;
+    this._game_callback = null;
 
-    self.hash = '';
-    self.username = '';
-
-    self.set_status = function (msg) {
-        if (self.socket)
-            self.socket.emit('status', msg);
-    }
-
-    self.log_message = function (msg) {
-        if (self.socket)
-            self.socket.emit('log', msg);
-    }
-
-    self.round_ended = function () {
-        if (self.socket)
-            self.socket.emit('round_ended');
-    }
-
-    self.game_form = function (form, callback) {
-        if (self.socket) {
-            self._game_callback = callback;
-            self.socket.emit('game_form', form);
-        }
-    }
-
-    self._game_form_callback = function (data, callback) {
-        self._game_callback(data, self, callback);
-    }
-
-    self._callback = function () {
-        self.callback(self, arguments[0]);
-    }
-
-    self.set_lobby = function (lobby) {
-        self.lobby = lobby;
-    }
-
-    self.is_connected = function () {
-        return self.socket != undefined && self.socket != null;
-    }
+    this.hash = '';
+    this.username = '';
 
     if (socket) {
-        self.socket.on('game_form', self._game_form_callback);
+        socket.on('game_form', this._game_form_callback.bind(this));
     }
 }
 
-module.exports = exports = function (socket) { return new Player(socket) }
+Player.prototype.set_status = function (msg) {
+    if (this.socket)
+        this.socket.emit('status', msg);
+}
+
+Player.prototype.log_message = function (msg) {
+    if (this.socket)
+        this.socket.emit('log', msg);
+}
+
+Player.prototype.round_ended = function () {
+    if (this.socket)
+        this.socket.emit('round_ended');
+}
+
+Player.prototype.game_form = function (form, callback) {
+    if (this.socket) {
+        this._game_callback = callback;
+        this.socket.emit('game_form', form);
+    }
+}
+
+Player.prototype._game_form_callback = function (data, callback) {
+    this._game_callback(data, this, callback);
+}
+
+Player.prototype._callback = function () {
+    this.callback(this, arguments[0]);
+}
+
+Player.prototype.set_lobby = function (lobby) {
+    this.lobby = lobby;
+}
+
+Player.prototype.is_connected = function () {
+    return this.socket != undefined && this.socket != null;
+}

@@ -15,6 +15,7 @@ exports.play = function (players, callback, db) {
             if (data.hasOwnProperty('weapon') && _options.indexOf(data.weapon) >= 0) {
                 player.weapon = data.weapon;
                 player.log_message("You chose " + data.weapon);
+                console.log(player.username + " chose " + data.weapon);
             } else {
                 callback("alert(\"That's not a real move.\")");
             }
@@ -67,7 +68,11 @@ function beats(first_weapon, second_weapon) {
             if (second_weapon == "Paper")
                 return true;
             break;
+        case "":
+            if (second_weapon != "")
+                return false;
+            break;
     }
 
-    return false;
+    return true;
 }

@@ -1,22 +1,20 @@
-Player = require(__dirname + '/../../../src/player.js');
+Player = require(__dirname + '/../../../src/player.js').Player;
 
-Bot = Player();
+function Bot() {};
+Bot.prototype.__proto__ = Player.prototype;
 
-Bot.username = "Rock bot";
+Bot.prototype.username = "Rock";
 
-Bot.is_connected = function () {
+Bot.prototype.is_connected = function () {
     return true;
 }
 
-Bot.log_message = function (msg) {
+Bot.prototype.log_message = function (msg) {
     console.log(this.username + ': ' + msg);
 }
 
-Bot.round_ended = function () {
+Bot.prototype.game_form = function (form, callback) {
+    callback({weapon: this.username}, this, function () {});
 }
 
-Bot.game_form = function (form, callback) {
-    callback({weapon: 'Rock'}, self, function () {});
-}
-
-exports.Bot = Bot;
+exports.Bot = new Bot();
