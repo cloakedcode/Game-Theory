@@ -1,4 +1,5 @@
 {
     "name": "Test",
-    "num_per_round": 2
+    "num_per_round": 2,
+    "parameters": []
 }

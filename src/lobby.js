@@ -59,10 +59,10 @@ Lobby.prototype._run_loop = function () {
                 }
             }
         } else {
-            var game = Game({name: this.game.name});
+            var game = Game.game_named(this.game.display_name);
             game.db = db;
             this.games.push(game);
-            game.play(pair, this._game_ended.bind(this));
+            game.launch_game(pair, this._game_ended.bind(this));
         }
     }
 
@@ -77,7 +77,7 @@ Lobby.prototype._run_loop = function () {
  * this is an internal function that should never be called directly.
  */
 Lobby.prototype._game_ended = function (game, players) {
-    // remove game from list of games now that it has ended
+    // remove game from list of :ames now that it has ended
     var i = this.games.indexOf(game);
     if (i >= 0) {
         this.games.splice(i, 1);

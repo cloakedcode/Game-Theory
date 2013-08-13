@@ -1,3 +1,5 @@
+var OrigGame = require(__dirname + '/../../src/game.js').Game;
+
 var _options = ["Rock", "Paper", "Scissors"];
 var _form = '<h3>Fist Selection</h3><form>';
 
@@ -7,7 +9,12 @@ for (op in _options) {
 
 _form += "</form>";
 
-exports.play = function (players, callback, db) {
+function Game() {};
+Game.prototype.__proto__ = OrigGame.prototype;
+
+exports.Game = new Game();
+
+Game.prototype.play = function (players, callback, db) {
     console.log(players[0].username + " and " + players[1].username + " are playing.");
     for (var i=0; i<players.length; i++) {
         players[i].send_msg = function (msg) { this.set_status(msg); this.log_message(msg); };
@@ -22,6 +29,14 @@ exports.play = function (players, callback, db) {
         });
     }
     countdown(players, 5, callback);
+}
+
+Game.prototype.set_parameter = function (name, val) {
+    if (name == 'winner') {
+        this.winner = val;
+    }
+
+    return {success: false, errors: [{error: "Value must not contain your name."}]};
 }
 
 function countdown(players, seconds, callback) {

@@ -5,7 +5,7 @@ Game = require('../src/game.js')
 describe('Lobby', function () {
     describe('#create', function () {
         it('should create with valid game name', function () {
-            (function () {Lobby(Game({name: 'Test'}))}).should.not.throw;
+            (function () {Lobby(Game.game_named('Test'))}).should.not.throw;
         })
         
         it('should fail with invalid game name', function () {
@@ -17,7 +17,7 @@ describe('Lobby', function () {
         var lobby, player;
 
         before(function () {
-            lobby = Lobby(Game({name: 'Test'}));
+            lobby = Lobby(Game.game_named('Test'));
             player = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, name: 'fake'};
 
             lobby.add_player(player);
@@ -41,7 +41,7 @@ describe('Lobby', function () {
         var lobby, player;
 
         before(function () {
-            lobby = Lobby(Game({name: 'Test'}));
+            lobby = Lobby(Game.game_named('Test'));
             player = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, name: 'fake'};
 
             lobby.add_player(player);
@@ -59,7 +59,7 @@ describe('Lobby', function () {
 
     describe('#pair players', function () {
         it('should create 3 pairs from 3 players', function () {
-            var lobby = Lobby(Game({name: 'Test'}));
+            var lobby = Lobby(Game.game_named('Test'));
             var player = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, round_ended: function () {}, name: 'fake'};
             var player2 = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, round_ended: function () {}, name: 'fake2'};
             var player3 = {set_lobby: function (lobby) {this.lobby = lobby}, set_status: function () {}, round_ended: function () {}, name: 'fake3'};

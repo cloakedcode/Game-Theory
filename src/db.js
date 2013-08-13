@@ -103,11 +103,11 @@ function game_id(game, callback) {
 
 function game_type_id(game, callback) {
     // @TODO: validate game has required fields
-    db.get('SELECT id FROM game_types WHERE name = ? AND num_of_players = ?', game.name, game.num_per_round, function (err, row) {
+    db.get('SELECT id FROM game_types WHERE name = ? AND num_of_players = ?', game.display_name, game.num_per_round, function (err, row) {
         var type_id = row;
 
         if (type_id == undefined) {
-            db.run('INSERT INTO game_types (name, num_of_players) VALUES (?, ?)', game.name, game.num_per_round, function (err) {
+            db.run('INSERT INTO game_types (name, num_of_players) VALUES (?, ?)', game.display_name, game.num_per_round, function (err) {
                 if (err) {
                     throw err;
                 }

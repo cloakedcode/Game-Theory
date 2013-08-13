@@ -14,18 +14,23 @@
     }
 </style>
 <h1>Lobbies</h1>
-<ul>
 {{#lobbies}}
-<li>{{game.name}} <form method='post' style='display: inline'>
-    <input type='hidden' name='game_id' value='{{game.name}}'>
-    {{#button}}{{is_running}}{{/button}}
-    <input type='submit' name='Delete' value='Delete'>
-</form></li>
+<div>
+    <h2>{{game.display_name}}</h2>
+    <form method='post'>
+        {{#game.parameters}}
+            <label>{{display_name}}: </label><input type='text' name='{{name}}'
+            value='{{#param}}{{name}}{{/param}}'><br/>
+        {{/game.parameters}}
+        <input type='hidden' name='game_id' value='{{game.display_name}}'>
+        {{#button}}{{is_running}}{{/button}}
+        <input type='submit' name='Delete' value='Delete'>
+    </form>
+</div>
 {{/lobbies}}
 {{^lobbies}}
-<li>There are no lobbies yet. Create one below.</li>
+<div>There are no lobbies yet. Create one below.</div>
 {{/lobbies}}
-</ul>
 
 <hr>
 
@@ -34,7 +39,7 @@
     <select name='game' id='game'>
         <option value='none'>Select a Game</option>
         {{#games}}
-        <option value='{{name}}'>{{name}}</option>
+        <option value='{{display_name}}'>{{display_name}}</option>
         {{/games}}
     </select>
     {{^games}}

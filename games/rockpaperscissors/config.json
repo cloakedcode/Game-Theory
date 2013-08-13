@@ -1,4 +1,8 @@
 {
     "name": "Rock, Paper, Scissors",
-    "num_per_round": 2
+    "num_per_round": 2,
+    "parameters": [
+          { "display_name": "Winner", "name": "winner" }
+        , { "display_name": "Loser", "name": "loser" }
+    ]
 }

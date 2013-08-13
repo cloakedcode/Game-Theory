@@ -1,22 +1,13 @@
-var Bot = {};
+function Bot() {
+    this.username = 'test-bot';
+}
 
-Bot.username = 'test-bot';
-
-Bot.is_connected = function () {
+Bot.prototype.is_connected = function () {
     return true;
 }
 
-Bot.set_status = function (msg) {
+Bot.prototype.set_status = function (msg) {
     console.log('Bot: ' + msg);
-}
-
-Bot.log_message = function () {
-}
-
-Bot.round_ended = function () {
-}
-
-Bot.set_lobby = function () {
 }
 
 exports.Bot = Bot;

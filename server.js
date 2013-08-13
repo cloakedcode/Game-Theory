@@ -21,7 +21,23 @@ app.use(express.static('public'));
 // -----------------------------------------
 app.get('/admin.html', function (req, res) {
     game.available_games(function (games) {
-        res.render('admin', {games: games, lobbies: socket_server.lobbies, button: function () { return function (text, render) { value = 'Start'; if (render(text) == 'true') value = 'Stop'; return "<input type='submit' name='"+value+"' value='"+value+"' >" }}});
+        var button = function () {
+            return function (text, render) {
+                var value = 'Start';
+
+                if (render(text) == 'true')
+                    value = 'Stop';
+                return "<input type='submit' name='"+value+"' value='"+value+"' >";
+            }
+        }
+
+        var param =  function () {
+            return function (text, render) {
+                return render("{{game." + render(text) + "}}");
+            }
+        }
+
+        res.render('admin', {games: games, lobbies: socket_server.lobbies, button: button, param: param});
     });
 });
 
@@ -36,6 +52,16 @@ app.post('/admin.html', function (req, res) {
     }
     // if the start button was clicked
     if (req.body.Start != undefined) {
+        var game_obj = socket_server.game_lobby(req.body.game_id).game;
+        for (var i=0; i<game_obj.parameters.length; i++) {
+            var name = game_obj.parameters[i].name;
+            var success = game_obj.set_parameter(name, req.body[name]);
+
+            if (success.success == false) {
+                return res.render('admin_fail', {errors: success.errors});
+            }
+        }
+
         socket_server.start_lobby(req.body.game_id);
     }
     else if (req.body.Stop != undefined) {

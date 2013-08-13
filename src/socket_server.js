@@ -104,16 +104,24 @@ GameServer.prototype.listen = function (app) {
 GameServer.prototype.create_lobby = function (game_name) {
     logger.info('created lobby with game: ' + game_name);
 
-    game = Game({name: game_name});
+    game = Game.game_named(game_name);
     lobby = Lobby(game);
 
     this.lobbies.push(lobby);
     this.put_players_in_lobby(lobby);
 }
 
+GameServer.prototype.game_lobby = function (game_name) {
+    for (var i=0; i<this.lobbies.length; i++) {
+        if (this.lobbies[i].game.display_name == game_name && this.lobbies[i].is_running == false) {
+            return this.lobbies[i];
+        }
+    }
+}
+
 GameServer.prototype.start_lobby = function (game_name) {
     for (var i=0; i<this.lobbies.length; i++) {
-        if (this.lobbies[i].game.name == game_name && this.lobbies[i].is_running == false) {
+        if (this.lobbies[i].game.display_name == game_name && this.lobbies[i].is_running == false) {
             return this.lobbies[i].run_game();
         }
     }
@@ -121,7 +129,7 @@ GameServer.prototype.start_lobby = function (game_name) {
 
 GameServer.prototype.stop_lobby = function (game_name) {
     for (var i=0; i<this.lobbies.length; i++) {
-        if (this.lobbies[i].game.name == game_name && this.lobbies[i].is_running) {
+        if (this.lobbies[i].game.display_name == game_name && this.lobbies[i].is_running) {
             return this.lobbies[i].end_game();
         }
     }
@@ -132,7 +140,7 @@ GameServer.prototype.delete_lobby = function (game_name) {
         var lobby = this.lobbies[i];
 
         // if it's the lobby we're looking for
-        if (lobby.game.name == game_name) {
+        if (lobby.game.display_name == game_name) {
             lobby.end_game();
             // if there are players, remove them
             if (lobby.players) {
