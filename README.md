@@ -27,6 +27,6 @@ or
  - [socket.io](http://socket.io) - WebSocket implementation
  - [express](http://expressjs.com) - web server
  - [mustache](http://mustache.github.io/) - "logic-less" templating language
- - [mocha](http://visionmedia.github.io/mocha/) - testing framework
+ - [mocha](http://mochajs.org/) - testing framework
  - [should.js](http://github.com/visionmedia/should.js) - BDD assertion library
  - [node-sqlite3](https://github.com/developmentseed/node-sqlite3) - database
